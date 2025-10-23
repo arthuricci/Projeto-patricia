@@ -90,3 +90,20 @@ export async function getUser(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+// Funções para gerenciar insumos via Supabase
+import { supabase, Insumo } from './supabaseClient';
+
+export async function getInsumos(): Promise<Insumo[]> {
+  const { data, error } = await supabase
+    .from('Insumos')
+    .select('*')
+    .order('nome', { ascending: true });
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar insumos:', error);
+    throw new Error(`Erro ao buscar insumos: ${error.message}`);
+  }
+
+  return data || [];
+}
