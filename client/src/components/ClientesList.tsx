@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,61 +26,62 @@ import { Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
-interface InsumoFormData {
-  nome: string;
-  unidade_base: string;
-  nivel_minimo: number;
+interface ClienteFormData {
+  nome: string | null;
+  telefone: string | null;
+  instagram: string | null;
+  observacoes: string | null;
 }
 
-export default function InsumosList() {
+export default function ClientesList() {
   const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
-  const { data: insumos, isLoading, error } = trpc.insumos.list.useQuery();
+  const { data: clientes, isLoading, error } = trpc.clientes.list.useQuery();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedInsumo, setSelectedInsumo] = useState<{ id: string; nome: string } | null>(null);
-  const [usageInfo, setUsageInfo] = useState<{ isUsed: boolean; recipes: Array<{ nome: string; quantidade: number }> } | null>(null);
-  const [formData, setFormData] = useState<InsumoFormData>({
-    nome: '',
-    unidade_base: '',
-    nivel_minimo: 0,
+  const [selectedCliente, setSelectedCliente] = useState<{ id: string; nome: string | null } | null>(null);
+  const [formData, setFormData] = useState<ClienteFormData>({
+    nome: null,
+    telefone: null,
+    instagram: null,
+    observacoes: null,
   });
 
-  const createMutation = trpc.insumos.create.useMutation({
+  const createMutation = trpc.clientes.create.useMutation({
     onSuccess: () => {
-      utils.insumos.list.invalidate();
+      utils.clientes.list.invalidate();
       setIsCreateDialogOpen(false);
-      setFormData({ nome: '', unidade_base: '', nivel_minimo: 0 });
-      toast.success('Insumo criado com sucesso!');
+      setFormData({ nome: null, telefone: null, instagram: null, observacoes: null });
+      toast.success('Cliente criado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao criar insumo: ${error.message}`);
+      toast.error(`Erro ao criar cliente: ${error.message}`);
     },
   });
 
-  const updateMutation = trpc.insumos.update.useMutation({
+  const updateMutation = trpc.clientes.update.useMutation({
     onSuccess: () => {
-      utils.insumos.list.invalidate();
+      utils.clientes.list.invalidate();
       setIsEditDialogOpen(false);
-      setSelectedInsumo(null);
-      toast.success('Insumo atualizado com sucesso!');
+      setSelectedCliente(null);
+      toast.success('Cliente atualizado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar insumo: ${error.message}`);
+      toast.error(`Erro ao atualizar cliente: ${error.message}`);
     },
   });
 
-  const deleteMutation = trpc.insumos.delete.useMutation({
+  const deleteMutation = trpc.clientes.delete.useMutation({
     onSuccess: () => {
-      utils.insumos.list.invalidate();
+      utils.clientes.list.invalidate();
       setIsDeleteDialogOpen(false);
-      setSelectedInsumo(null);
-      toast.success('Insumo excluído com sucesso!');
+      setSelectedCliente(null);
+      toast.success('Cliente excluído com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir insumo: ${error.message}`);
+      toast.error(`Erro ao excluir cliente: ${error.message}`);
     },
   });
 
@@ -87,48 +89,41 @@ export default function InsumosList() {
     createMutation.mutate(formData);
   };
 
-  const handleEdit = (insumo: any) => {
-    setSelectedInsumo({ id: insumo.id, nome: insumo.nome });
+  const handleEdit = (cliente: any) => {
+    setSelectedCliente({ id: cliente.id, nome: cliente.nome });
     setFormData({
-      nome: insumo.nome,
-      unidade_base: insumo.unidade_base,
-      nivel_minimo: insumo.nivel_minimo,
+      nome: cliente.nome,
+      telefone: cliente.telefone,
+      instagram: cliente.instagram,
+      observacoes: cliente.observacoes,
     });
     setIsEditDialogOpen(true);
   };
 
   const handleUpdate = () => {
-    if (selectedInsumo) {
+    if (selectedCliente) {
       updateMutation.mutate({
-        id: selectedInsumo.id,
+        id: selectedCliente.id,
         ...formData,
       });
     }
   };
 
-  const handleDeleteClick = async (insumo: any) => {
-    setSelectedInsumo({ id: insumo.id, nome: insumo.nome });
-    
-    // Verificar se o insumo está sendo usado
-    try {
-      const usage = await utils.client.insumos.checkUsage.query({ id: insumo.id });
-      setUsageInfo(usage);
-      setIsDeleteDialogOpen(true);
-    } catch (error) {
-      toast.error('Erro ao verificar uso do insumo');
-    }
+  const handleDeleteClick = (cliente: any) => {
+    setSelectedCliente({ id: cliente.id, nome: cliente.nome });
+    setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (selectedInsumo) {
-      deleteMutation.mutate({ id: selectedInsumo.id });
+    if (selectedCliente) {
+      deleteMutation.mutate({ id: selectedCliente.id });
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <p className="text-gray-600">Carregando insumos...</p>
+        <p className="text-gray-600">Carregando clientes...</p>
       </div>
     );
   }
@@ -149,17 +144,17 @@ export default function InsumosList() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Button>
-          <h1 className="text-3xl font-bold text-gray-800">Lista de Insumos</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Lista de Clientes</h1>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Adicionar Insumo
+          Adicionar Cliente
         </Button>
       </div>
 
-      {!insumos || insumos.length === 0 ? (
+      {!clientes || clientes.length === 0 ? (
         <div className="flex items-center justify-center p-8">
-          <p className="text-gray-600">Nenhum insumo encontrado.</p>
+          <p className="text-gray-600">Nenhum cliente encontrado.</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -170,10 +165,13 @@ export default function InsumosList() {
                   Nome
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Unidade
+                  Telefone
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nível Mínimo
+                  Instagram
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Observações
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ações
@@ -181,22 +179,25 @@ export default function InsumosList() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {insumos.map((insumo) => (
-                <tr key={insumo.id} className="hover:bg-gray-50">
+              {clientes.map((cliente) => (
+                <tr key={cliente.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {insumo.nome}
+                    {cliente.nome || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {insumo.unidade_base}
+                    {cliente.telefone || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {insumo.nivel_minimo}
+                    {cliente.instagram || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                    {cliente.observacoes || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(insumo)}
+                      onClick={() => handleEdit(cliente)}
                       className="mr-2"
                     >
                       <Pencil className="h-4 w-4" />
@@ -204,7 +205,7 @@ export default function InsumosList() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeleteClick(insumo)}
+                      onClick={() => handleDeleteClick(cliente)}
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
@@ -218,11 +219,11 @@ export default function InsumosList() {
 
       {/* Dialog para Criar */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Insumo</DialogTitle>
+            <DialogTitle>Adicionar Novo Cliente</DialogTitle>
             <DialogDescription>
-              Preencha os dados do novo insumo abaixo.
+              Preencha os dados do novo cliente abaixo.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -230,28 +231,37 @@ export default function InsumosList() {
               <Label htmlFor="nome">Nome</Label>
               <Input
                 id="nome"
-                value={formData.nome}
-                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                placeholder="Ex: Açúcar"
+                value={formData.nome || ''}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value || null })}
+                placeholder="Ex: Maria Silva"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="unidade">Unidade de Medida</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
-                id="unidade"
-                value={formData.unidade_base}
-                onChange={(e) => setFormData({ ...formData, unidade_base: e.target.value })}
-                placeholder="Ex: kg, g, ml, unidade"
+                id="telefone"
+                value={formData.telefone || ''}
+                onChange={(e) => setFormData({ ...formData, telefone: e.target.value || null })}
+                placeholder="Ex: (11) 98765-4321"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="nivel">Nível Mínimo</Label>
+              <Label htmlFor="instagram">Instagram</Label>
               <Input
-                id="nivel"
-                type="number"
-                value={formData.nivel_minimo}
-                onChange={(e) => setFormData({ ...formData, nivel_minimo: Number(e.target.value) })}
-                placeholder="Ex: 500"
+                id="instagram"
+                value={formData.instagram || ''}
+                onChange={(e) => setFormData({ ...formData, instagram: e.target.value || null })}
+                placeholder="Ex: @mariasilva"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="observacoes">Observações</Label>
+              <Textarea
+                id="observacoes"
+                value={formData.observacoes || ''}
+                onChange={(e) => setFormData({ ...formData, observacoes: e.target.value || null })}
+                placeholder="Informações adicionais sobre o cliente"
+                rows={3}
               />
             </div>
           </div>
@@ -268,11 +278,11 @@ export default function InsumosList() {
 
       {/* Dialog para Editar */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar Insumo</DialogTitle>
+            <DialogTitle>Editar Cliente</DialogTitle>
             <DialogDescription>
-              Altere os dados do insumo abaixo.
+              Altere os dados do cliente abaixo.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -280,25 +290,33 @@ export default function InsumosList() {
               <Label htmlFor="edit-nome">Nome</Label>
               <Input
                 id="edit-nome"
-                value={formData.nome}
-                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                value={formData.nome || ''}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value || null })}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-unidade">Unidade de Medida</Label>
+              <Label htmlFor="edit-telefone">Telefone</Label>
               <Input
-                id="edit-unidade"
-                value={formData.unidade_base}
-                onChange={(e) => setFormData({ ...formData, unidade_base: e.target.value })}
+                id="edit-telefone"
+                value={formData.telefone || ''}
+                onChange={(e) => setFormData({ ...formData, telefone: e.target.value || null })}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-nivel">Nível Mínimo</Label>
+              <Label htmlFor="edit-instagram">Instagram</Label>
               <Input
-                id="edit-nivel"
-                type="number"
-                value={formData.nivel_minimo}
-                onChange={(e) => setFormData({ ...formData, nivel_minimo: Number(e.target.value) })}
+                id="edit-instagram"
+                value={formData.instagram || ''}
+                onChange={(e) => setFormData({ ...formData, instagram: e.target.value || null })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-observacoes">Observações</Label>
+              <Textarea
+                id="edit-observacoes"
+                value={formData.observacoes || ''}
+                onChange={(e) => setFormData({ ...formData, observacoes: e.target.value || null })}
+                rows={3}
               />
             </div>
           </div>
@@ -319,29 +337,8 @@ export default function InsumosList() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              {usageInfo?.isUsed ? (
-                <div className="space-y-2">
-                  <p className="font-semibold text-orange-600">
-                    ⚠️ Atenção! O insumo <strong>{selectedInsumo?.nome}</strong> está sendo usado em:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    {usageInfo.recipes.map((recipe, index) => (
-                      <li key={index}>
-                        Receita: <strong>{recipe.nome}</strong> ({recipe.quantidade}g)
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-red-600 font-medium">
-                    Ao excluir este insumo, ele será removido dessas receitas.
-                    Esta ação não pode ser desfeita.
-                  </p>
-                </div>
-              ) : (
-                <p>
-                  Tem certeza que deseja excluir o insumo <strong>{selectedInsumo?.nome}</strong>?
-                  Esta ação não pode ser desfeita.
-                </p>
-              )}
+              Tem certeza que deseja excluir o cliente <strong>{selectedCliente?.nome || 'sem nome'}</strong>?
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
