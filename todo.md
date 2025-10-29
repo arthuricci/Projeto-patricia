@@ -16,12 +16,12 @@
 - [ ] CRUD Ordens de Producao
 - [ ] CRUD Despesas
 
-## Fase 2.5: Estoque (Quase Completo)
+## Fase 2.5: Estoque (COMPLETO)
 - [x] Registrar Insumos - completo
 - [x] Ver Estoque - completo
 - [x] Registrar Compras - completo
 - [x] Dar Baixa em Insumos - COMPLETO E TESTADO
-- [ ] Lista de Compras - IMPLEMENTADO (aguardando RLS)
+- [x] Lista de Compras - COMPLETO E TESTADO
 
 ## Fase 3: Layout e Navegacao
 - [x] Menu inicial com cards de navegacao

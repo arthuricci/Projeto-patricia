@@ -78,12 +78,13 @@ export default function ListaComprasPage() {
   });
 
   const createItemMutation = trpc.itensListaCompras.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Item adicionado à lista!");
       setShowItemDialog(false);
       setNovoItemInsumo("");
       setNovoItemQuantidade("");
-      refetchItens();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await refetchItens();
     },
     onError: (error) => {
       toast.error(`Erro ao adicionar item: ${error.message}`);

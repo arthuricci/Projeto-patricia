@@ -550,10 +550,7 @@ export async function deleteListaCompras(id: string): Promise<void> {
 export async function getItensListaCompras(listaId: string): Promise<ItemListaComprasComInsumo[]> {
   const { data, error } = await supabase
     .from('itens_lista_compras')
-    .select(`
-      *,
-      Insumos:insumo_id (*)
-    `)
+    .select('*')
     .eq('lista_compras_id', listaId)
     .order('created_at', { ascending: true });
 
@@ -562,9 +559,30 @@ export async function getItensListaCompras(listaId: string): Promise<ItemListaCo
     throw new Error(`Erro ao buscar itens da lista de compras: ${error.message}`);
   }
 
-  return (data || []).map((item: any) => ({
+  const itens = data || [];
+  const insumosIdsSet = new Set(itens.map((item: any) => item.insumo_id));
+  const insumosIds = Array.from(insumosIdsSet);
+  
+  if (insumosIds.length === 0) {
+    return itens.map((item: any) => ({
+      ...item,
+      insumo: null,
+    }));
+  }
+
+  const { data: insumosData } = await supabase
+    .from('Insumos')
+    .select('*')
+    .in('id', insumosIds);
+
+  const insumosMap = (insumosData || []).reduce((acc: any, insumo: any) => {
+    acc[insumo.id] = insumo;
+    return acc;
+  }, {});
+
+  return itens.map((item: any) => ({
     ...item,
-    insumo: item.Insumos,
+    insumo: insumosMap[item.insumo_id] || null,
   }));
 }
 
