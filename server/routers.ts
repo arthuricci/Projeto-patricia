@@ -41,6 +41,7 @@ export const appRouter = router({
         nome: z.string().min(1, "Nome é obrigatório"),
         unidade_base: z.string().min(1, "Unidade é obrigatória"),
         nivel_minimo: z.number().min(0, "Nível mínimo deve ser positivo"),
+        tipo_produto: z.string().min(1, "Tipo de insumo é obrigatório"),
       }))
       .mutation(async ({ input }) => {
         return await createInsumo(input);
@@ -52,6 +53,7 @@ export const appRouter = router({
         nome: z.string().min(1).optional(),
         unidade_base: z.string().min(1).optional(),
         nivel_minimo: z.number().min(0).optional(),
+        tipo_produto: z.string().min(1).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;

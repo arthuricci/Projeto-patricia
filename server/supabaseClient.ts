@@ -10,6 +10,7 @@ export interface Insumo {
   nome: string;
   unidade_base: string;
   nivel_minimo: number;
+  tipo_produto?: string;
   created_at?: string;
   updated_at?: string;
 }

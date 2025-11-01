@@ -32,6 +32,7 @@ type SortConfig = {
 export default function VerEstoque() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnidade, setSelectedUnidade] = useState<string>("");
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
@@ -188,15 +189,34 @@ export default function VerEstoque() {
             </SelectContent>
           </Select>
 
+          {/* Filtro por tipo */}
+          <Select value={selectedTipo} onValueChange={(value) => {
+            setSelectedTipo(value);
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Láticinio">Láticinio</SelectItem>
+              <SelectItem value="Perecível">Perecível</SelectItem>
+              <SelectItem value="Não-Perecível">Não-Perecível</SelectItem>
+              <SelectItem value="Congelado">Congelado</SelectItem>
+              <SelectItem value="Seco">Seco</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             onClick={() => {
+              setSearchTerm("");
               setSelectedUnidade("");
+              setSelectedTipo("");
               setCurrentPage(1);
             }}
             className="text-xs"
           >
-            Limpar Filtro
+            Limpar Filtros
           </Button>
         </div>
       </div>

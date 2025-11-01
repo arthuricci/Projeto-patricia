@@ -30,6 +30,7 @@ import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const UNIDADES_MEDIDA = ["Kg", "G", "Ml", "L", "unidade", "lata", "caixa"];
+const TIPOS_INSUMO = ["Láticinio", "Perecível", "Não-Perecível", "Congelado", "Seco"];
 const ITEMS_PER_PAGE = 10;
 
 export default function RegistrarInsumos() {
@@ -37,6 +38,7 @@ export default function RegistrarInsumos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnidade, setSelectedUnidade] = useState<string>("");
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [insumoToDelete, setInsumoToDelete] = useState<string | null>(null);
@@ -45,6 +47,7 @@ export default function RegistrarInsumos() {
     nome: "",
     unidade_base: "",
     nivel_minimo: 0,
+    tipo_produto: "",
   });
 
   // Queries
@@ -96,9 +99,10 @@ export default function RegistrarInsumos() {
     return insumos.filter((insumo) => {
       const matchesSearch = insumo.nome?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUnidade = !selectedUnidade || insumo.unidade_base === selectedUnidade;
-      return matchesSearch && matchesUnidade;
+      const matchesTipo = !selectedTipo || insumo.tipo_produto === selectedTipo;
+      return matchesSearch && matchesUnidade && matchesTipo;
     });
-  }, [insumos, searchTerm, selectedUnidade]);
+  }, [insumos, searchTerm, selectedUnidade, selectedTipo]);
 
   const totalPages = Math.ceil(filteredInsumos.length / ITEMS_PER_PAGE);
   const paginatedInsumos = filteredInsumos.slice(
@@ -107,7 +111,7 @@ export default function RegistrarInsumos() {
   );
 
   const resetForm = () => {
-    setFormData({ nome: "", unidade_base: "", nivel_minimo: 0 });
+    setFormData({ nome: "", unidade_base: "", nivel_minimo: 0, tipo_produto: "" });
     setEditingId(null);
   };
 
@@ -116,13 +120,14 @@ export default function RegistrarInsumos() {
       nome: insumo.nome || "",
       unidade_base: insumo.unidade_base || "",
       nivel_minimo: insumo.nivel_minimo || 0,
+      tipo_produto: insumo.tipo_produto || "",
     });
     setEditingId(insumo.id);
     setIsOpen(true);
   };
 
   const handleSubmit = () => {
-    if (!formData.nome || !formData.unidade_base) {
+    if (!formData.nome || !formData.unidade_base || !formData.tipo_produto) {
       toast.error("Preencha todos os campos obrigatórios!");
       return;
     }
@@ -133,12 +138,14 @@ export default function RegistrarInsumos() {
         nome: formData.nome,
         unidade_base: formData.unidade_base,
         nivel_minimo: formData.nivel_minimo,
+        tipo_produto: formData.tipo_produto,
       });
     } else {
       createMutation.mutate({
         nome: formData.nome,
         unidade_base: formData.unidade_base,
         nivel_minimo: formData.nivel_minimo,
+        tipo_produto: formData.tipo_produto,
       });
     }
   };
@@ -191,15 +198,34 @@ export default function RegistrarInsumos() {
               ))}
             </SelectContent>
           </Select>
+
+          {/* Filtro por tipo */}
+          <Select value={selectedTipo} onValueChange={(value) => {
+            setSelectedTipo(value);
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIPOS_INSUMO.map((tipo) => (
+                <SelectItem key={tipo} value={tipo}>
+                  {tipo}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             onClick={() => {
               setSelectedUnidade("");
+              setSelectedTipo("");
               setCurrentPage(1);
             }}
             className="text-xs"
           >
-            Limpar Filtro
+            Limpar Filtros
           </Button>
 
           {/* Botão adicionar */}
@@ -259,6 +285,27 @@ export default function RegistrarInsumos() {
                 </div>
 
                 <div>
+                  <label className="text-sm font-medium">Tipo de Insumo *</label>
+                  <Select
+                    value={formData.tipo_produto}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, tipo_produto: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOS_INSUMO.map((tipo) => (
+                        <SelectItem key={tipo} value={tipo}>
+                          {tipo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <label className="text-sm font-medium">Nível Mínimo</label>
                   <Input
                     type="number"
@@ -300,6 +347,7 @@ export default function RegistrarInsumos() {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Nível Mínimo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -308,13 +356,13 @@ export default function RegistrarInsumos() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : paginatedInsumos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                   Nenhum insumo encontrado
                 </TableCell>
               </TableRow>
@@ -322,6 +370,7 @@ export default function RegistrarInsumos() {
               paginatedInsumos.map((insumo) => (
                 <TableRow key={insumo.id}>
                   <TableCell className="font-medium">{insumo.nome}</TableCell>
+                  <TableCell>{insumo.tipo_produto || "-"}</TableCell>
                   <TableCell>{insumo.unidade_base}</TableCell>
                   <TableCell>{insumo.nivel_minimo}</TableCell>
                   <TableCell className="text-right space-x-2">
@@ -336,7 +385,6 @@ export default function RegistrarInsumos() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteClick(insumo.id)}
-                      className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -375,37 +423,27 @@ export default function RegistrarInsumos() {
         </div>
       )}
 
-      {/* Alert de confirmação de delete */}
+      {/* Alert Dialog */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Deletar Insumo</AlertDialogTitle>
             <AlertDialogDescription>
-              {insumoUsage && insumoUsage.isUsed ? (
-                <div>
-                  <p className="mb-2">
-                    Este insumo está sendo usado em {insumoUsage.recipes.length} receita(s):
-                  </p>
-                  <ul className="list-disc list-inside text-sm">
-                    {insumoUsage.recipes.map((recipe: any) => (
-                      <li key={recipe.nome}>{recipe.nome}</li>
-                    ))}
-                  </ul>
-                  <p className="mt-2">Deseja continuar com a exclusão?</p>
-                </div>
-              ) : (
-                "Tem certeza que deseja excluir este insumo?"
-              )}
+              {insumoUsage?.isUsed
+                ? "Este insumo está sendo usado e não pode ser deletado."
+                : "Tem certeza que deseja deletar este insumo? Esta ação não pode ser desfeita."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
+            {!insumoUsage?.isUsed && (
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Deletar
+              </AlertDialogAction>
+            )}
           </div>
         </AlertDialogContent>
       </AlertDialog>

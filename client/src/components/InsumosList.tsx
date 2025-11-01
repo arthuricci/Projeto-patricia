@@ -29,6 +29,7 @@ interface InsumoFormData {
   nome: string;
   unidade_base: string;
   nivel_minimo: number;
+  tipo_produto: string;
 }
 
 export default function InsumosList() {
@@ -45,13 +46,14 @@ export default function InsumosList() {
     nome: '',
     unidade_base: '',
     nivel_minimo: 0,
+    tipo_produto: '',
   });
 
   const createMutation = trpc.insumos.create.useMutation({
     onSuccess: () => {
       utils.insumos.list.invalidate();
       setIsCreateDialogOpen(false);
-      setFormData({ nome: '', unidade_base: '', nivel_minimo: 0 });
+      setFormData({ nome: '', unidade_base: '', nivel_minimo: 0, tipo_produto: '' });
       toast.success('Insumo criado com sucesso!');
     },
     onError: (error) => {
@@ -93,6 +95,7 @@ export default function InsumosList() {
       nome: insumo.nome,
       unidade_base: insumo.unidade_base,
       nivel_minimo: insumo.nivel_minimo,
+      tipo_produto: insumo.tipo_produto || '',
     });
     setIsEditDialogOpen(true);
   };

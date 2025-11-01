@@ -63,6 +63,7 @@ export default function RegistrarCompras() {
     nome: "",
     unidade_base: "",
     nivel_minimo: "",
+    tipo_produto: "",
   });
 
   // Estados da aba Registros Passados
@@ -129,7 +130,7 @@ export default function RegistrarCompras() {
     onSuccess: () => {
       toast.success("Insumo criado com sucesso!");
       setShowCriarInsumoDialog(false);
-      setNovoInsumoDados({ nome: "", unidade_base: "", nivel_minimo: "" });
+      setNovoInsumoDados({ nome: "", unidade_base: "", nivel_minimo: "", tipo_produto: "" });
       refetch();
     },
     onError: (error) => {
@@ -221,10 +222,16 @@ export default function RegistrarCompras() {
       return;
     }
 
+    if (!novoInsumoDados.tipo_produto) {
+      toast.error("Tipo de insumo é obrigatório");
+      return;
+    }
+
     createInsumoMutation.mutate({
       nome: novoInsumoDados.nome,
       unidade_base: novoInsumoDados.unidade_base,
       nivel_minimo: novoInsumoDados.nivel_minimo ? parseFloat(novoInsumoDados.nivel_minimo) : 0,
+      tipo_produto: novoInsumoDados.tipo_produto,
     });
   };
 
@@ -809,6 +816,27 @@ export default function RegistrarCompras() {
                 min="0"
                 step="0.01"
               />
+            </div>
+
+            <div>
+              <Label>Tipo de Insumo *</Label>
+              <Select
+                value={novoInsumoDados.tipo_produto}
+                onValueChange={(value) =>
+                  setNovoInsumoDados({ ...novoInsumoDados, tipo_produto: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Láticinio">Láticinio</SelectItem>
+                  <SelectItem value="Perecível">Perecível</SelectItem>
+                  <SelectItem value="Não-Perecível">Não-Perecível</SelectItem>
+                  <SelectItem value="Congelado">Congelado</SelectItem>
+                  <SelectItem value="Seco">Seco</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

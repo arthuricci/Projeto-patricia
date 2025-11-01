@@ -47,3 +47,10 @@
 - Registrar Compras (lotes)
 - Dar Baixa em Insumos (em desenvolvimento)
 
+
+
+## Fase 2.6: Melhorias no Estoque
+- [ ] Adicionar campo Tipo de Insumo (Láticinio, Perecível, etc)
+- [ ] Atualizar formulário Registrar Insumos com campo Tipo
+- [ ] Adicionar filtro por Tipo na página Ver Estoque
+
