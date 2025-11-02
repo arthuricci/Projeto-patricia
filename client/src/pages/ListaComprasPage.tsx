@@ -47,6 +47,7 @@ export default function ListaComprasPage() {
   // Queries
   const { data: listas = [], isLoading: loadingListas, refetch: refetchListas } = trpc.listasCompras.list.useQuery();
   const { data: insumos = [] } = trpc.insumos.list.useQuery();
+  const { data: insumosCriticos = [] } = trpc.insumos.criticos.useQuery();
   const { data: itensLista = [], refetch: refetchItens } = trpc.itensListaCompras.listByLista.useQuery(
     { listaId: selectedLista?.id || "" },
     { enabled: !!selectedLista }
@@ -173,6 +174,44 @@ export default function ListaComprasPage() {
         {/* Conteúdo Principal */}
         {!selectedLista ? (
           <div className="space-y-6">
+            {/* Seção Lista Automática */}
+            {insumosCriticos.length > 0 && (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-yellow-900 mb-1">Lista Automática</h2>
+                    <p className="text-sm text-yellow-700">Insumos com estoque crítico (≤ nível mínimo)</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Insumo</TableHead>
+                        <TableHead>Estoque Atual</TableHead>
+                        <TableHead>Nível Mínimo</TableHead>
+                        <TableHead>Tipo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {insumosCriticos.map((insumo: any) => (
+                        <TableRow key={insumo.id}>
+                          <TableCell className="font-medium">{insumo.nome}</TableCell>
+                          <TableCell>
+                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-sm font-semibold">
+                              {insumo.quantidade_estoque} {insumo.unidade_base}
+                            </span>
+                          </TableCell>
+                          <TableCell>{insumo.nivel_minimo} {insumo.unidade_base}</TableCell>
+                          <TableCell>{insumo.tipo_produto || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
             {/* Botão Criar Nova Lista */}
             <Button
               onClick={() => setShowCreateDialog(true)}

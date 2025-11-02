@@ -686,3 +686,29 @@ export async function deleteBaixaEstoque(id: string): Promise<void> {
   }
 }
 
+
+
+
+export async function getInsumosCriticos(): Promise<Array<Insumo & { quantidade_estoque: number }>> {
+  // Buscar todos os insumos
+  const insumos = await getInsumos();
+  
+  // Buscar todos os lotes
+  const lotes = await getLotes();
+  
+  // Calcular quantidade em estoque por insumo
+  const insumosComEstoque = insumos.map((insumo) => {
+    const quantidadeTotal = lotes
+      .filter((lote: any) => lote.insumo_id === insumo.id)
+      .reduce((sum: number, lote: any) => sum + (lote.quantidade_atual || 0), 0);
+    
+    return {
+      ...insumo,
+      quantidade_estoque: quantidadeTotal,
+    };
+  });
+  
+  // Retornar apenas insumos com estoque <= nível mínimo
+  return insumosComEstoque.filter((insumo) => insumo.quantidade_estoque <= insumo.nivel_minimo);
+}
+

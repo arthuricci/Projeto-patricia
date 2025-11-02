@@ -49,6 +49,7 @@ export default function RegistrarCompras() {
   // Estados da aba Registrar
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnidade, setSelectedUnidade] = useState<string>("");
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInsumo, setSelectedInsumo] = useState<any>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -143,9 +144,10 @@ export default function RegistrarCompras() {
     return insumos.filter((insumo) => {
       const matchesSearch = insumo.nome?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUnidade = !selectedUnidade || insumo.unidade_base === selectedUnidade;
-      return matchesSearch && matchesUnidade;
+      const matchesTipo = !selectedTipo || insumo.tipo_produto === selectedTipo;
+      return matchesSearch && matchesUnidade && matchesTipo;
     });
-  }, [insumos, searchTerm, selectedUnidade]);
+  }, [insumos, searchTerm, selectedUnidade, selectedTipo]);
 
   const totalPages = Math.ceil(filteredInsumos.length / ITEMS_PER_PAGE);
   const paginatedInsumos = filteredInsumos.slice(
@@ -325,15 +327,33 @@ export default function RegistrarCompras() {
               </SelectContent>
             </Select>
 
+            <Select value={selectedTipo} onValueChange={(value) => {
+              setSelectedTipo(value);
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Láticinio">Láticinio</SelectItem>
+                <SelectItem value="Perecível">Perecível</SelectItem>
+                <SelectItem value="Não-Perecível">Não-Perecível</SelectItem>
+                <SelectItem value="Congelado">Congelado</SelectItem>
+                <SelectItem value="Seco">Seco</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Button
               variant="outline"
               onClick={() => {
+                setSearchTerm("");
                 setSelectedUnidade("");
+                setSelectedTipo("");
                 setCurrentPage(1);
               }}
               className="text-xs"
             >
-              Limpar Filtro
+              Limpar Filtros
             </Button>
 
             <Button
@@ -353,6 +373,7 @@ export default function RegistrarCompras() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Unidade</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Nível Mínimo</TableHead>
                 <TableHead className="text-right">Ação</TableHead>
               </TableRow>
@@ -360,13 +381,13 @@ export default function RegistrarCompras() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : paginatedInsumos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                     Nenhum insumo encontrado
                   </TableCell>
                 </TableRow>
@@ -375,6 +396,7 @@ export default function RegistrarCompras() {
                   <TableRow key={insumo.id}>
                     <TableCell className="font-medium">{insumo.nome}</TableCell>
                     <TableCell>{insumo.unidade_base}</TableCell>
+                    <TableCell>{insumo.tipo_produto || '-'}</TableCell>
                     <TableCell>{insumo.nivel_minimo}</TableCell>
                     <TableCell className="text-right">
                       <Button

@@ -4,7 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
 import { 
-  getInsumos, createInsumo, updateInsumo, deleteInsumo, checkInsumoUsage,
+  getInsumos, createInsumo, updateInsumo, deleteInsumo, checkInsumoUsage, getInsumosCriticos,
   getClientes, createCliente, updateCliente, deleteCliente,
   getProdutos, createProduto, updateProduto, deleteProduto,
   getFichasTecnicas, createFichaTecnica, updateFichaTecnica, deleteFichaTecnica,
@@ -34,6 +34,10 @@ export const appRouter = router({
   insumos: router({
     list: publicProcedure.query(async () => {
       return await getInsumos();
+    }),
+    
+    criticos: publicProcedure.query(async () => {
+      return await getInsumosCriticos();
     }),
     
     create: publicProcedure
