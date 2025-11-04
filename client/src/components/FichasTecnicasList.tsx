@@ -22,9 +22,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2, Plus, ArrowLeft, ChefHat } from 'lucide-react';
+import { Pencil, Trash2, Plus, ArrowLeft, ChefHat, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface FichaFormData {
   nome: string | null;
@@ -33,11 +40,18 @@ interface FichaFormData {
   unidade_rendimento: string | null;
 }
 
+interface IngredienteForm {
+  insumo_id: string;
+  quantidade: number;
+}
+
 export default function FichasTecnicasList() {
   const [, setLocation] = useLocation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isIngredientesDialogOpen, setIsIngredientesDialogOpen] = useState(false);
+  const [isReceitaDialogOpen, setIsReceitaDialogOpen] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<{ id: string; nome: string | null } | null>(null);
   const [formData, setFormData] = useState<FichaFormData>({
     nome: null,
@@ -45,8 +59,17 @@ export default function FichasTecnicasList() {
     rendimento_total: null,
     unidade_rendimento: null,
   });
+  const [novoIngrediente, setNovoIngrediente] = useState<IngredienteForm>({
+    insumo_id: '',
+    quantidade: 0,
+  });
 
   const utils = trpc.useUtils();
+  const { data: insumos = [] } = trpc.insumos.list.useQuery();
+  const { data: ingredientes = [], refetch: refetchIngredientes } = trpc.ingredientes.listByFicha.useQuery(
+    { fichaId: selectedFicha?.id || '' },
+    { enabled: !!selectedFicha }
+  );
 
   const createMutation = trpc.fichasTecnicas.create.useMutation({
     onSuccess: () => {
@@ -82,6 +105,27 @@ export default function FichasTecnicasList() {
     },
     onError: (error) => {
       toast.error(`Erro ao excluir ficha: ${error.message}`);
+    },
+  });
+
+  const createIngredienteMutation = trpc.ingredientes.create.useMutation({
+    onSuccess: () => {
+      refetchIngredientes();
+      setNovoIngrediente({ insumo_id: '', quantidade: 0 });
+      toast.success('Ingrediente adicionado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(`Erro ao adicionar ingrediente: ${error.message}`);
+    },
+  });
+
+  const deleteIngredienteMutation = trpc.ingredientes.delete.useMutation({
+    onSuccess: () => {
+      refetchIngredientes();
+      toast.success('Ingrediente removido com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(`Erro ao remover ingrediente: ${error.message}`);
     },
   });
 
@@ -138,6 +182,59 @@ export default function FichasTecnicasList() {
     }
   };
 
+  const handleOpenIngredientesDialog = (ficha: any) => {
+    setSelectedFicha({ id: ficha.id, nome: ficha.nome });
+    setIsIngredientesDialogOpen(true);
+  };
+
+  const handleOpenReceitaDialog = (ficha: any) => {
+    setSelectedFicha({ id: ficha.id, nome: ficha.nome });
+    setFormData({
+      nome: ficha.nome,
+      modo_de_preparo: ficha.modo_de_preparo,
+      rendimento_total: ficha.rendimento_total,
+      unidade_rendimento: ficha.unidade_rendimento,
+    });
+    setIsReceitaDialogOpen(true);
+  };
+
+  const handleSaveReceita = () => {
+    if (selectedFicha) {
+      updateMutation.mutate({
+        id: selectedFicha.id,
+        modo_de_preparo: formData.modo_de_preparo,
+      });
+      setIsReceitaDialogOpen(false);
+    }
+  };
+
+  const handleAddIngrediente = () => {
+    if (!novoIngrediente.insumo_id || novoIngrediente.quantidade <= 0) {
+      toast.error('Selecione um insumo e informe a quantidade');
+      return;
+    }
+
+    if (selectedFicha) {
+      createIngredienteMutation.mutate({
+        ficha_tecnica_id: selectedFicha.id,
+        insumo_id: novoIngrediente.insumo_id,
+        quantidade: novoIngrediente.quantidade,
+      });
+    }
+  };
+
+  const handleRemoveIngrediente = (ingredienteId: string) => {
+    deleteIngredienteMutation.mutate({ id: ingredienteId });
+  };
+
+  const getInsumoNome = (insumoId: string) => {
+    return insumos.find((i: any) => i.id === insumoId)?.nome || 'Insumo desconhecido';
+  };
+
+  const getInsumoUnidade = (insumoId: string) => {
+    return insumos.find((i: any) => i.id === insumoId)?.unidade_base || '';
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -167,7 +264,6 @@ export default function FichasTecnicasList() {
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold">NOME</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">RENDIMENTO</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">MODO DE PREPARO</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold">AÇÕES</th>
               </tr>
             </thead>
@@ -178,10 +274,25 @@ export default function FichasTecnicasList() {
                   <td className="px-6 py-4">
                     {ficha.rendimento_total ? `${ficha.rendimento_total} ${ficha.unidade_rendimento || ''}` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                    {ficha.modo_de_preparo || '-'}
-                  </td>
                   <td className="px-6 py-4 text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenReceitaDialog(ficha)}
+                      className="text-orange-600 hover:text-orange-800"
+                      title="Ver receita"
+                    >
+                      Ver Receita
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenIngredientesDialog(ficha)}
+                      className="text-green-600 hover:text-green-800"
+                      title="Gerenciar ingredientes"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -249,12 +360,20 @@ export default function FichasTecnicasList() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="unidade">Unidade</Label>
-                <Input
-                  id="unidade"
-                  value={formData.unidade_rendimento || ''}
-                  onChange={(e) => setFormData({ ...formData, unidade_rendimento: e.target.value || null })}
-                  placeholder="Ex: unidades"
-                />
+                <Select value={formData.unidade_rendimento || ''} onValueChange={(value) => setFormData({ ...formData, unidade_rendimento: value || null })}>
+                  <SelectTrigger id="unidade">
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unidades">Unidades</SelectItem>
+                    <SelectItem value="kg">Kg</SelectItem>
+                    <SelectItem value="g">Gramas</SelectItem>
+                    <SelectItem value="L">Litros</SelectItem>
+                    <SelectItem value="ml">Mililitros</SelectItem>
+                    <SelectItem value="xícaras">Xícaras</SelectItem>
+                    <SelectItem value="colheres">Colheres</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -309,11 +428,20 @@ export default function FichasTecnicasList() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-unidade">Unidade</Label>
-                <Input
-                  id="edit-unidade"
-                  value={formData.unidade_rendimento || ''}
-                  onChange={(e) => setFormData({ ...formData, unidade_rendimento: e.target.value || null })}
-                />
+                <Select value={formData.unidade_rendimento || ''} onValueChange={(value) => setFormData({ ...formData, unidade_rendimento: value || null })}>
+                  <SelectTrigger id="edit-unidade">
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unidades">Unidades</SelectItem>
+                    <SelectItem value="kg">Kg</SelectItem>
+                    <SelectItem value="g">Gramas</SelectItem>
+                    <SelectItem value="L">Litros</SelectItem>
+                    <SelectItem value="ml">Mililitros</SelectItem>
+                    <SelectItem value="xícaras">Xícaras</SelectItem>
+                    <SelectItem value="colheres">Colheres</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -323,6 +451,127 @@ export default function FichasTecnicasList() {
             </Button>
             <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Visualizar/Editar Receita */}
+      <Dialog open={isReceitaDialogOpen} onOpenChange={setIsReceitaDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{selectedFicha?.nome}</DialogTitle>
+            <DialogDescription>
+              Caderno de Receitas
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid gap-2">
+              <Label>Modo de Preparo</Label>
+              <Textarea
+                value={formData.modo_de_preparo || ''}
+                onChange={(e) => setFormData({ ...formData, modo_de_preparo: e.target.value || null })}
+                placeholder="Descreva o modo de preparo..."
+                rows={12}
+                className="font-mono text-sm resize-none"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReceitaDialogOpen(false)}>
+              Fechar
+            </Button>
+            <Button onClick={handleSaveReceita} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? 'Salvando...' : 'Salvar Receita'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Gerenciar Ingredientes */}
+      <Dialog open={isIngredientesDialogOpen} onOpenChange={setIsIngredientesDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ingredientes - {selectedFicha?.nome}</DialogTitle>
+            <DialogDescription>
+              Adicione ou remova ingredientes (insumos) desta receita.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Seção para Adicionar Ingrediente */}
+            <div className="border rounded-lg p-4 bg-blue-50">
+              <h3 className="font-semibold mb-3">Adicionar Ingrediente</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="insumo-select">Insumo</Label>
+                  <Select value={novoIngrediente.insumo_id} onValueChange={(value) => setNovoIngrediente({ ...novoIngrediente, insumo_id: value })}>
+                    <SelectTrigger id="insumo-select">
+                      <SelectValue placeholder="Selecione um insumo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {insumos.map((insumo: any) => (
+                        <SelectItem key={insumo.id} value={insumo.id}>
+                          {insumo.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="quantidade-input">Quantidade</Label>
+                  <Input
+                    id="quantidade-input"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={novoIngrediente.quantidade || ''}
+                    onChange={(e) => setNovoIngrediente({ ...novoIngrediente, quantidade: e.target.value ? Number(e.target.value) : 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddIngrediente} disabled={createIngredienteMutation.isPending} className="w-full">
+                    {createIngredienteMutation.isPending ? 'Adicionando...' : 'Adicionar'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de Ingredientes */}
+            <div>
+              <h3 className="font-semibold mb-3">Ingredientes Adicionados</h3>
+              {ingredientes.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">Nenhum ingrediente adicionado</p>
+              ) : (
+                <div className="space-y-2">
+                  {ingredientes.map((ingrediente: any) => (
+                    <div key={ingrediente.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                      <div>
+                        <p className="font-medium">{getInsumoNome(ingrediente.insumo_id)}</p>
+                        <p className="text-sm text-gray-600">{ingrediente.quantidade} {getInsumoUnidade(ingrediente.insumo_id)}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveIngrediente(ingrediente.id)}
+                        disabled={deleteIngredienteMutation.isPending}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsIngredientesDialogOpen(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
