@@ -14,6 +14,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -33,12 +40,14 @@ interface ProdutoFormData {
   preco_venda: number | null;
   foto_url: string | null;
   ativo: boolean;
+  ficha_tecnica_id: string | null;
 }
 
 export default function ProdutosList() {
   const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
   const { data: produtos, isLoading, error } = trpc.produtos.list.useQuery();
+  const { data: fichas = [] } = trpc.fichasTecnicas.list.useQuery();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -50,6 +59,7 @@ export default function ProdutosList() {
     preco_venda: null,
     foto_url: null,
     ativo: true,
+    ficha_tecnica_id: null,
   });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -106,6 +116,7 @@ export default function ProdutosList() {
       preco_venda: produto.preco_venda,
       foto_url: produto.foto_url,
       ativo: produto.ativo,
+      ficha_tecnica_id: produto.ficha_tecnica_id || null,
     });
     setPreviewImage(produto.foto_url);
     setIsEditDialogOpen(true);
@@ -121,7 +132,7 @@ export default function ProdutosList() {
   };
 
   const resetForm = () => {
-    setFormData({ nome: null, descricao: null, preco_venda: null, foto_url: null, ativo: true });
+    setFormData({ nome: null, descricao: null, preco_venda: null, foto_url: null, ativo: true, ficha_tecnica_id: null });
     setPreviewImage(null);
   };
 
@@ -340,6 +351,21 @@ export default function ProdutosList() {
               />
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="ficha">Ficha Técnica</Label>
+              <Select value={formData.ficha_tecnica_id || ''} onValueChange={(value) => setFormData({ ...formData, ficha_tecnica_id: value || null })}>
+                <SelectTrigger id="ficha">
+                  <SelectValue placeholder="Selecione uma ficha técnica (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fichas.map((ficha: any) => (
+                    <SelectItem key={ficha.id} value={ficha.id}>
+                      {ficha.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
               <Label>Foto do Produto</Label>
               <input
                 ref={fileInputRef}
@@ -438,6 +464,21 @@ export default function ProdutosList() {
                 value={formData.preco_venda || ''}
                 onChange={(e) => setFormData({ ...formData, preco_venda: e.target.value ? Number(e.target.value) : null })}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-ficha">Ficha Técnica</Label>
+              <Select value={formData.ficha_tecnica_id || ''} onValueChange={(value) => setFormData({ ...formData, ficha_tecnica_id: value || null })}>
+                <SelectTrigger id="edit-ficha">
+                  <SelectValue placeholder="Selecione uma ficha técnica (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fichas.map((ficha: any) => (
+                    <SelectItem key={ficha.id} value={ficha.id}>
+                      {ficha.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>Foto do Produto</Label>
