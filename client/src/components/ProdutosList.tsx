@@ -43,6 +43,11 @@ interface ProdutoFormData {
   ficha_tecnica_id: string | null;
 }
 
+interface ProdutoFichaAssociacao {
+  fichaId: string;
+  fichaNome?: string | null;
+}
+
 export default function ProdutosList() {
   const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
@@ -63,6 +68,8 @@ export default function ProdutosList() {
   });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [fichasAssociadas, setFichasAssociadas] = useState<ProdutoFichaAssociacao[]>([]);
+  const [selectedFichaToAdd, setSelectedFichaToAdd] = useState<string>('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const uploadImageMutation = trpc.upload.image.useMutation();
@@ -134,6 +141,26 @@ export default function ProdutosList() {
   const resetForm = () => {
     setFormData({ nome: null, descricao: null, preco_venda: null, foto_url: null, ativo: true, ficha_tecnica_id: null });
     setPreviewImage(null);
+    setFichasAssociadas([]);
+    setSelectedFichaToAdd('');
+  };
+
+  const handleAddFicha = () => {
+    if (!selectedFichaToAdd) {
+      toast.error('Selecione uma ficha tecnica');
+      return;
+    }
+    if (fichasAssociadas.some(f => f.fichaId === selectedFichaToAdd)) {
+      toast.error('Esta ficha tecnica ja foi adicionada');
+      return;
+    }
+    const ficha = fichas.find((f: any) => f.id === selectedFichaToAdd);
+    setFichasAssociadas([...fichasAssociadas, { fichaId: selectedFichaToAdd, fichaNome: ficha?.nome }]);
+    setSelectedFichaToAdd('');
+  };
+
+  const handleRemoveFicha = (fichaId: string) => {
+    setFichasAssociadas(fichasAssociadas.filter(f => f.fichaId !== fichaId));
   };
 
   const handleDeleteClick = (produto: any) => {
@@ -350,20 +377,44 @@ export default function ProdutosList() {
                 placeholder="Ex: 45.00"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="ficha">Ficha Técnica</Label>
-              <Select value={formData.ficha_tecnica_id || ''} onValueChange={(value) => setFormData({ ...formData, ficha_tecnica_id: value || null })}>
-                <SelectTrigger id="ficha">
-                  <SelectValue placeholder="Selecione uma ficha técnica (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fichas.map((ficha: any) => (
-                    <SelectItem key={ficha.id} value={ficha.id}>
-                      {ficha.nome}
-                    </SelectItem>
+            <div className="border-t pt-4">
+              <Label>Fichas Tecnicas Associadas</Label>
+              <div className="grid gap-2 mt-2">
+                <Select value={selectedFichaToAdd} onValueChange={setSelectedFichaToAdd}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma ficha tecnica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fichas.map((ficha: any) => (
+                      <SelectItem key={ficha.id} value={ficha.id}>
+                        {ficha.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleAddFicha} className="w-full mt-2" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Ficha
+              </Button>
+              {fichasAssociadas.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <Label>Fichas Adicionadas</Label>
+                  {fichasAssociadas.map((ficha) => (
+                    <div key={ficha.fichaId} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                      <span className="text-sm">{ficha.fichaNome}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFicha(ficha.fichaId)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Foto do Produto</Label>

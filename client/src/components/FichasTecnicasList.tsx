@@ -63,6 +63,10 @@ export default function FichasTecnicasList() {
     insumo_id: '',
     quantidade: 0,
   });
+  const [ingredientesTemporarios, setIngredientesTemporarios] = useState<IngredienteForm[]>([]);
+  const [searchInsumo, setSearchInsumo] = useState('');
+  const [selectedUnidade, setSelectedUnidade] = useState<string | null>(null);
+  const [selectedTipo, setSelectedTipo] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   const { data: insumos = [] } = trpc.insumos.list.useQuery();
@@ -133,6 +137,19 @@ export default function FichasTecnicasList() {
 
   const resetForm = () => {
     setFormData({ nome: null, modo_de_preparo: null, rendimento_total: null, unidade_rendimento: null });
+  };
+
+  const handleAddInsumoTemporario = () => {
+    if (!novoIngrediente.insumo_id || novoIngrediente.quantidade <= 0) {
+      toast.error('Selecione um insumo e informe a quantidade');
+      return;
+    }
+    setIngredientesTemporarios([...ingredientesTemporarios, novoIngrediente]);
+    setNovoIngrediente({ insumo_id: '', quantidade: 0 });
+  };
+
+  const handleRemoveInsumoTemporario = (insumoId: string) => {
+    setIngredientesTemporarios(ingredientesTemporarios.filter(i => i.insumo_id !== insumoId));
   };
 
   const handleCreate = () => {
@@ -375,6 +392,59 @@ export default function FichasTecnicasList() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="border-t pt-4">
+              <Label>Insumos da Receita</Label>
+              <div className="grid gap-2 mt-2">
+                <Select value={novoIngrediente.insumo_id} onValueChange={(value) => setNovoIngrediente({ ...novoIngrediente, insumo_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um insumo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {insumos.map((insumo: any) => (
+                      <SelectItem key={insumo.id} value={insumo.id}>
+                        {insumo.nome} ({insumo.unidade_base})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2 mt-2">
+                <Label htmlFor="qtd-insumo">Quantidade</Label>
+                <Input
+                  id="qtd-insumo"
+                  type="number"
+                  step="0.01"
+                  value={novoIngrediente.quantidade || ''}
+                  onChange={(e) => setNovoIngrediente({ ...novoIngrediente, quantidade: e.target.value ? Number(e.target.value) : 0 })}
+                  placeholder="Ex: 500"
+                />
+              </div>
+              <Button onClick={handleAddInsumoTemporario} className="w-full mt-2" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Insumo
+              </Button>
+              {ingredientesTemporarios.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <Label>Insumos Adicionados</Label>
+                  {ingredientesTemporarios.map((ing) => {
+                    const insumo = insumos.find((i: any) => i.id === ing.insumo_id);
+                    return (
+                      <div key={ing.insumo_id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                        <span className="text-sm">{insumo?.nome} - {ing.quantidade} {insumo?.unidade_base}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveInsumoTemporario(ing.insumo_id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
