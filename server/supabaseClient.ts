@@ -108,3 +108,19 @@ export interface BaixaEstoqueComLote extends BaixaEstoque {
   lote?: LoteComInsumo;
 }
 
+
+export interface OrdemProducao {
+  id: string;
+  produto_id: string;
+  status: 'pendente' | 'em_andamento' | 'concluida';
+  quantidade_produzida: number;
+  data_inicio: string;
+  data_conclusao: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OrdemProducaoComProduto extends OrdemProducao {
+  produto?: Produto;
+}
+

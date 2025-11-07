@@ -12,8 +12,8 @@
 - [x] CRUD Produtos (completo)
 - [x] BUG: Campo de upload de imagem - CORRIGIDO
 - [x] CRUD Fichas Tecnicas (Receitas) - completo
+- [x] CRUD Ordens de Producao (COMPLETO)
 - [ ] CRUD Pedidos
-- [ ] CRUD Ordens de Producao
 - [ ] CRUD Despesas
 
 ## Fase 2.5: Estoque (COMPLETO)
@@ -53,4 +53,20 @@
 - [ ] Adicionar campo Tipo de Insumo (Láticinio, Perecível, etc)
 - [ ] Atualizar formulário Registrar Insumos com campo Tipo
 - [ ] Adicionar filtro por Tipo na página Ver Estoque
+
+
+
+## Fase 3.5: Ordens de Producao (COMPLETO)
+- [x] Backend - Criar tabela ordens_producao no banco
+- [x] Backend - Adicionar interfaces OrdemProducao e OrdemProducaoComProduto
+- [x] Backend - Implementar funcoes CRUD (getOrdensProducao, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao)
+- [x] Backend - Implementar validacao de estoque antes de iniciar producao
+- [x] Backend - Implementar deducao automatica de estoque (FIFO) quando producao inicia
+- [x] Backend - Criar rotas tRPC para CRUD e stock deduction
+- [x] Frontend - Criar componente OrdenProducaoList com listagem, criacao, edicao e delecao
+- [x] Frontend - Adicionar validacao de estoque no formulario
+- [x] Frontend - Integrar componente ao menu principal com card de navegacao
+- [x] Frontend - Adicionar rota /ordens-producao
+- [x] Testes - Compilacao TypeScript sem erros
+- [x] Testes - Componente renderiza corretamente
 

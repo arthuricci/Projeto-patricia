@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Users, ShoppingBag, ChefHat, Warehouse } from "lucide-react";
+import { Users, ShoppingBag, ChefHat, Warehouse, Factory } from "lucide-react";
 
 export default function Home() {
   return (
@@ -73,6 +73,28 @@ export default function Home() {
               <CardContent>
                 <p className="text-sm text-gray-600">
                   Cadastre produtos, preços, descrições e controle o status de ativo/inativo.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Card Ordens de Produção */}
+          <Link href="/ordens-producao">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <Factory className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Ordens de Produção</CardTitle>
+                    <CardDescription>Gerenciar produção</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">
+                  Crie ordens de produção e controle o status. Estoque é deduzido automaticamente.
                 </p>
               </CardContent>
             </Card>

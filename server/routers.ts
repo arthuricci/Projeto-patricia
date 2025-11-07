@@ -12,7 +12,9 @@ import {
   getLotes, createLote, updateLote, deleteLote,
   getListasCompras, createListaCompras, updateListaCompras, deleteListaCompras,
   getItensListaCompras, createItemListaCompras, updateItemListaCompras, deleteItemListaCompras,
-  getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque
+  getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque,
+  getOrdensProducao, getOrdemProducaoById, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao, getOrdensProducaoPorProduto,
+  validateStockForProduction, deductStockForProduction, getProductFichasTecnicas
 } from "./db";
 import { z } from "zod";
 
@@ -421,6 +423,99 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteBaixaEstoque(input.id);
         return { success: true };
+      }),
+  }),
+
+  // Router para gerenciar ordens de produção
+  ordensProducao: router({
+    list: publicProcedure.query(async () => {
+      return await getOrdensProducao();
+    }),
+    
+    getById: publicProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+      }))
+      .query(async ({ input }) => {
+        return await getOrdemProducaoById(input.id);
+      }),
+    
+    getByProduto: publicProcedure
+      .input(z.object({
+        produtoId: z.string().uuid(),
+      }))
+      .query(async ({ input }) => {
+        return await getOrdensProducaoPorProduto(input.produtoId);
+      }),
+    
+    create: publicProcedure
+      .input(z.object({
+        produto_id: z.string().uuid(),
+        status: z.enum(['pendente', 'em_andamento', 'concluida']).default('pendente'),
+        quantidade_produzida: z.number().min(0).default(0),
+        data_inicio: z.string().datetime().optional(),
+        data_conclusao: z.string().datetime().nullable().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await createOrdemProducao({
+          produto_id: input.produto_id,
+          status: input.status,
+          quantidade_produzida: input.quantidade_produzida,
+          data_inicio: input.data_inicio || new Date().toISOString(),
+          data_conclusao: input.data_conclusao || null,
+        });
+      }),
+    
+    update: publicProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+        status: z.enum(['pendente', 'em_andamento', 'concluida']).optional(),
+        quantidade_produzida: z.number().min(0).optional(),
+        data_conclusao: z.string().datetime().nullable().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await updateOrdemProducao(id, data);
+      }),
+    
+    delete: publicProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+      }))
+      .mutation(async ({ input }) => {
+        await deleteOrdemProducao(input.id);
+        return { success: true };
+      }),
+    
+    validateStock: publicProcedure
+      .input(z.object({
+        produtoId: z.string().uuid(),
+        quantidade: z.number().min(0),
+      }))
+      .query(async ({ input }) => {
+        return await validateStockForProduction(input.produtoId, input.quantidade);
+      }),
+    
+    startProduction: publicProcedure
+      .input(z.object({
+        ordemId: z.string().uuid(),
+        produtoId: z.string().uuid(),
+        quantidade: z.number().min(0),
+      }))
+      .mutation(async ({ input }) => {
+        const validation = await validateStockForProduction(input.produtoId, input.quantidade);
+        if (!validation.isValid) {
+          throw new Error(validation.message || 'Estoque insuficiente');
+        }
+        const deduction = await deductStockForProduction(input.ordemId, input.produtoId, input.quantidade);
+        if (!deduction.success) {
+          throw new Error(deduction.message || 'Erro ao deduzir estoque');
+        }
+        await updateOrdemProducao(input.ordemId, {
+          status: 'em_andamento',
+          data_inicio: new Date().toISOString(),
+        });
+        return { success: true, message: 'Producao iniciada e estoque deduzido' };
       }),
   }),
 

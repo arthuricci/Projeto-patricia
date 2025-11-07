@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE ordens_producao (\n  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),\n  produto_id CHAR(36) NOT NULL,\n  status VARCHAR(50) NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'em_andamento', 'concluida')),\n  quantidade_produzida DECIMAL(10, 2) NOT NULL DEFAULT 0,\n  data_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  data_conclusao TIMESTAMP NULL,\n  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX idx_ordens_producao_produto_id (produto_id)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 26wh2e6DeXL6QVb.root --database em9brmNf2SiPYuJrmAHMq8 --execute CREATE TABLE ordens_producao (\n  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),\n  produto_id CHAR(36) NOT NULL,\n  status VARCHAR(50) NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'em_andamento', 'concluida')),\n  quantidade_produzida DECIMAL(10, 2) NOT NULL DEFAULT 0,\n  data_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  data_conclusao TIMESTAMP NULL,\n  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX idx_ordens_producao_produto_id (produto_id)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 309
+}

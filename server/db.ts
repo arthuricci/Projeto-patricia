@@ -91,7 +91,7 @@ export async function getUser(openId: string) {
 
 // TODO: add feature queries here as your schema grows.
 // Funções para gerenciar produtos via Supabase
-import { supabase, Insumo, Cliente, Produto, FichaTecnica, Ingrediente, IngredienteComInsumo, Lote, LoteComInsumo, ListaCompras, ItemListaCompras, ItemListaComprasComInsumo, BaixaEstoque, BaixaEstoqueComLote } from './supabaseClient';
+import { supabase, Insumo, Cliente, Produto, FichaTecnica, Ingrediente, IngredienteComInsumo, Lote, LoteComInsumo, ListaCompras, ItemListaCompras, ItemListaComprasComInsumo, BaixaEstoque, BaixaEstoqueComLote, OrdemProducao, OrdemProducaoComProduto } from './supabaseClient';
 
 export async function getInsumos(): Promise<Insumo[]> {
   const { data, error } = await supabase
@@ -710,5 +710,279 @@ export async function getInsumosCriticos(): Promise<Array<Insumo & { quantidade_
   
   // Retornar apenas insumos com estoque <= nível mínimo
   return insumosComEstoque.filter((insumo) => insumo.quantidade_estoque <= insumo.nivel_minimo);
+}
+
+
+
+// ===== ORDENS DE PRODUÇÃO =====
+
+export async function getOrdensProducao(): Promise<OrdemProducaoComProduto[]> {
+  const { data, error } = await supabase
+    .from('ordens_producao')
+    .select(`
+      *,
+      produtos (
+        id,
+        nome,
+        descricao,
+        preco_venda,
+        foto_url,
+        ativo
+      )
+    `)
+    .order('data_inicio', { ascending: false });
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar ordens de produção:', error);
+    throw new Error(`Erro ao buscar ordens de produção: ${error.message}`);
+  }
+
+  return (data || []).map((item: any) => ({
+    ...item,
+    produto: item.produtos,
+  }));
+}
+
+export async function getOrdemProducaoById(id: string): Promise<OrdemProducaoComProduto | null> {
+  const { data, error } = await supabase
+    .from('ordens_producao')
+    .select(`
+      *,
+      produtos (
+        id,
+        nome,
+        descricao,
+        preco_venda,
+        foto_url,
+        ativo
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null; // Not found
+    }
+    console.error('[Supabase] Erro ao buscar ordem de produção:', error);
+    throw new Error(`Erro ao buscar ordem de produção: ${error.message}`);
+  }
+
+  return data ? { ...data, produto: data.produtos } : null;
+}
+
+export async function createOrdemProducao(
+  ordem: Omit<OrdemProducao, 'id' | 'created_at' | 'updated_at'>
+): Promise<OrdemProducao> {
+  const { data, error } = await supabase
+    .from('ordens_producao')
+    .insert([ordem])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[Supabase] Erro ao criar ordem de produção:', error);
+    throw new Error(`Erro ao criar ordem de produção: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function updateOrdemProducao(
+  id: string,
+  ordem: Partial<Omit<OrdemProducao, 'id' | 'created_at' | 'updated_at'>>
+): Promise<OrdemProducao> {
+  const { data, error } = await supabase
+    .from('ordens_producao')
+    .update(ordem)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[Supabase] Erro ao atualizar ordem de produção:', error);
+    throw new Error(`Erro ao atualizar ordem de produção: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function deleteOrdemProducao(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('ordens_producao')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('[Supabase] Erro ao deletar ordem de produção:', error);
+    throw new Error(`Erro ao deletar ordem de produção: ${error.message}`);
+  }
+}
+
+export async function getOrdensProducaoPorProduto(produtoId: string): Promise<OrdemProducao[]> {
+  const { data, error } = await supabase
+    .from('ordens_producao')
+    .select('*')
+    .eq('produto_id', produtoId)
+    .order('data_inicio', { ascending: false });
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar ordens de produção por produto:', error);
+    throw new Error(`Erro ao buscar ordens de produção por produto: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+
+
+// ===== STOCK DEDUCTION FOR PRODUCTION =====
+
+export async function getProductFichasTecnicas(produtoId: string): Promise<FichaTecnica[]> {
+  // Get the product-ficha association from the junction table
+  const { data, error } = await supabase
+    .from('produto_fichas_tecnicas')
+    .select(`
+      fichas_tecnicas (
+        id,
+        nome,
+        modo_de_preparo,
+        rendimento_total,
+        unidade_rendimento
+      )
+    `)
+    .eq('produto_id', produtoId);
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar fichas técnicas do produto:', error);
+    throw new Error(`Erro ao buscar fichas técnicas do produto: ${error.message}`);
+  }
+
+  return (data || []).map((item: any) => item.fichas_tecnicas);
+}
+
+export async function validateStockForProduction(
+  produtoId: string,
+  quantidade: number
+): Promise<{ isValid: boolean; message?: string; ingredientesNecessarios?: any[] }> {
+  try {
+    // Get product's technical sheets
+    const fichas = await getProductFichasTecnicas(produtoId);
+    
+    if (!fichas || fichas.length === 0) {
+      return { isValid: true, message: 'Produto sem fichas técnicas associadas' };
+    }
+
+    // Collect all ingredients from all technical sheets
+    const ingredientesNecessarios: any[] = [];
+    
+    for (const ficha of fichas) {
+      const ingredientes = await getIngredientesByFicha(ficha.id);
+      ingredientesNecessarios.push(...ingredientes);
+    }
+
+    if (ingredientesNecessarios.length === 0) {
+      return { isValid: true, message: 'Nenhum ingrediente necessário' };
+    }
+
+    // Get all batches (lotes)
+    const lotes = await getLotes();
+
+    // Validate stock for each ingredient
+    for (const ingrediente of ingredientesNecessarios) {
+      const quantidadeNecessaria = (ingrediente.quantidade || 0) * quantidade;
+      
+      // Get total available stock for this ingredient
+      const lotesDoInsumo = lotes.filter((lote: any) => lote.insumo_id === ingrediente.insumo_id);
+      const quantidadeDisponivel = lotesDoInsumo.reduce((sum: number, lote: any) => sum + (lote.quantidade_atual || 0), 0);
+
+      if (quantidadeDisponivel < quantidadeNecessaria) {
+        return {
+          isValid: false,
+          message: `Estoque insuficiente de ${ingrediente.insumo?.nome || 'ingrediente'}: necessário ${quantidadeNecessaria}, disponível ${quantidadeDisponivel}`,
+          ingredientesNecessarios,
+        };
+      }
+    }
+
+    return { isValid: true, ingredientesNecessarios };
+  } catch (error) {
+    console.error('[Database] Erro ao validar estoque:', error);
+    throw error;
+  }
+}
+
+export async function deductStockForProduction(
+  ordemId: string,
+  produtoId: string,
+  quantidade: number
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    // Get product's technical sheets
+    const fichas = await getProductFichasTecnicas(produtoId);
+    
+    if (!fichas || fichas.length === 0) {
+      return { success: true, message: 'Nenhuma ficha técnica para dedução' };
+    }
+
+    // Collect all ingredients from all technical sheets
+    const ingredientesNecessarios: any[] = [];
+    
+    for (const ficha of fichas) {
+      const ingredientes = await getIngredientesByFicha(ficha.id);
+      ingredientesNecessarios.push(...ingredientes);
+    }
+
+    // Get all batches (lotes)
+    const lotes = await getLotes();
+
+    // Deduct stock for each ingredient using FIFO (oldest batches first)
+    for (const ingrediente of ingredientesNecessarios) {
+      const quantidadeNecessaria = (ingrediente.quantidade || 0) * quantidade;
+      
+      // Get batches for this ingredient, sorted by date (oldest first)
+      const lotesDoInsumo = lotes
+        .filter((lote: any) => lote.insumo_id === ingrediente.insumo_id)
+        .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+      let quantidadeAindaNecessaria = quantidadeNecessaria;
+
+      // Deduct from batches in FIFO order
+      for (const lote of lotesDoInsumo) {
+        if (quantidadeAindaNecessaria <= 0) break;
+
+        const quantidadeDisponivel = lote.quantidade_atual || 0;
+        const quantidadeADedu = Math.min(quantidadeDisponivel, quantidadeAindaNecessaria);
+
+        if (quantidadeADedu > 0) {
+          // Update lote quantity
+          const novaQuantidade = quantidadeDisponivel - quantidadeADedu;
+          await updateLote(lote.id, { quantidade_atual: novaQuantidade });
+
+          // Create baixa_estoque record
+          await createBaixaEstoque({
+            lote_id: lote.id,
+            quantidade_baixada: quantidadeADedu,
+            motivo: 'producao',
+            referencia_producao_id: ordemId,
+          });
+
+          quantidadeAindaNecessaria -= quantidadeADedu;
+        }
+      }
+
+      if (quantidadeAindaNecessaria > 0) {
+        return {
+          success: false,
+          message: `Não foi possível deduzir quantidade suficiente de ${ingrediente.insumo?.nome || 'ingrediente'}`,
+        };
+      }
+    }
+
+    return { success: true, message: 'Estoque deduzido com sucesso' };
+  } catch (error) {
+    console.error('[Database] Erro ao deduzir estoque:', error);
+    throw error;
+  }
 }
 
