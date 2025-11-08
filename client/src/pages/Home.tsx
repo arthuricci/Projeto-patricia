@@ -78,8 +78,8 @@ export default function Home() {
             </Card>
           </Link>
 
-          {/* Card Ordens de Produção */}
-          <Link href="/ordens-producao">
+          {/* Card Produção */}
+          <Link href="/produtos-producao">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -87,14 +87,14 @@ export default function Home() {
                     <Factory className="h-6 w-6 text-red-600" />
                   </div>
                   <div>
-                    <CardTitle>Ordens de Produção</CardTitle>
+                    <CardTitle>Produção</CardTitle>
                     <CardDescription>Gerenciar produção</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600">
-                  Crie ordens de produção e controle o status. Estoque é deduzido automaticamente.
+                  Selecione produtos para iniciar ou agendar produção. Controle todas as etapas.
                 </p>
               </CardContent>
             </Card>

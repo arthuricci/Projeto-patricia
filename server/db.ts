@@ -721,7 +721,7 @@ export async function getOrdensProducao(): Promise<OrdemProducaoComProduto[]> {
     .from('ordens_producao')
     .select(`
       *,
-      produtos (
+      produtos_venda:produto_id (
         id,
         nome,
         descricao,
@@ -739,7 +739,7 @@ export async function getOrdensProducao(): Promise<OrdemProducaoComProduto[]> {
 
   return (data || []).map((item: any) => ({
     ...item,
-    produto: item.produtos,
+    produto: item.produtos_venda,
   }));
 }
 
@@ -748,7 +748,7 @@ export async function getOrdemProducaoById(id: string): Promise<OrdemProducaoCom
     .from('ordens_producao')
     .select(`
       *,
-      produtos (
+      produtos_venda:produto_id (
         id,
         nome,
         descricao,
@@ -768,7 +768,7 @@ export async function getOrdemProducaoById(id: string): Promise<OrdemProducaoCom
     throw new Error(`Erro ao buscar ordem de produção: ${error.message}`);
   }
 
-  return data ? { ...data, produto: data.produtos } : null;
+  return data ? { ...data, produto: data.produtos_venda } : null;
 }
 
 export async function createOrdemProducao(

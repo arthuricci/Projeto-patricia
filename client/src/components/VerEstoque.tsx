@@ -16,10 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Search, Edit2, Trash2, ArrowUpDown } from "lucide-react";
-import { toast } from "sonner";
+import { Search, ArrowUpDown } from "lucide-react";
 
 const UNIDADES_MEDIDA = ["Kg", "G", "Ml", "L", "unidade", "lata", "caixa"];
 const ITEMS_PER_PAGE = 10;
@@ -35,25 +33,9 @@ export default function VerEstoque() {
   const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
-  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
-  const [insumoToDelete, setInsumoToDelete] = useState<string | null>(null);
-
   // Queries
-  const { data: insumos = [], isLoading, refetch } = trpc.insumos.list.useQuery();
+  const { data: insumos = [], isLoading } = trpc.insumos.list.useQuery();
   const { data: lotes = [] } = trpc.lotes.list.useQuery({});
-
-  // Mutations
-  const deleteMutation = trpc.insumos.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Insumo deletado com sucesso!");
-      setDeleteAlertOpen(false);
-      setInsumoToDelete(null);
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(`Erro ao deletar insumo: ${error.message}`);
-    },
-  });
 
   // Calcular quantidade em estoque por insumo
   const insumosComEstoque = useMemo(() => {
@@ -140,16 +122,7 @@ export default function VerEstoque() {
     }
   };
 
-  const handleDeleteClick = (id: string) => {
-    setInsumoToDelete(id);
-    setDeleteAlertOpen(true);
-  };
 
-  const handleConfirmDelete = () => {
-    if (insumoToDelete) {
-      deleteMutation.mutate({ id: insumoToDelete });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -247,19 +220,19 @@ export default function VerEstoque() {
                 </div>
               </TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : paginatedInsumos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   Nenhum insumo encontrado
                 </TableCell>
               </TableRow>
@@ -276,25 +249,7 @@ export default function VerEstoque() {
                       {getStatusLabel(insumo.status)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {}}
-                      disabled
-                      title="Editar (em desenvolvimento)"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(insumo.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+
                 </TableRow>
               ))
             )}
@@ -329,26 +284,7 @@ export default function VerEstoque() {
         </div>
       )}
 
-      {/* Alert de confirmação de delete */}
-      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este insumo?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-2 justify-end">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }

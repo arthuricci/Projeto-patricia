@@ -16,6 +16,8 @@ import Clientes from "./pages/Clientes";
 import Produtos from "./pages/Produtos";
 import FichasTecnicas from "./pages/FichasTecnicas";
 import OrdenProducaoPage from "./pages/OrdenProducaoPage";
+import ProdutosProducao from "./pages/ProdutosProducao";
+import Producoes from "./pages/Producoes";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -33,6 +35,8 @@ function Router() {
       <Route path="/produtos" component={Produtos} />
       <Route path="/fichas-tecnicas" component={FichasTecnicas} />
       <Route path="/ordens-producao" component={OrdenProducaoPage} />
+      <Route path="/produtos-producao" component={ProdutosProducao} />
+      <Route path="/producoes" component={Producoes} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
