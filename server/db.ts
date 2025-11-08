@@ -986,3 +986,39 @@ export async function deductStockForProduction(
   }
 }
 
+
+
+
+// ===== CÁLCULO DE PREÇO MÉDIO =====
+
+export async function atualizarPrecoMedioPorUnidade(insumoId: string): Promise<void> {
+  try {
+    // Busca todos os lotes do insumo que têm preco_por_unidade
+    const { data: lotes, error: errorLotes } = await supabase
+      .from('lotes')
+      .select('preco_por_unidade')
+      .eq('insumo_id', insumoId)
+      .not('preco_por_unidade', 'is', null);
+
+    if (errorLotes || !lotes || lotes.length === 0) {
+      return;
+    }
+
+    // Calcula média simples
+    const soma = lotes.reduce((acc: number, lote: any) => acc + (lote.preco_por_unidade || 0), 0);
+    const media = soma / lotes.length;
+
+    // Atualiza insumo com o novo preço médio
+    const { error: errorUpdate } = await supabase
+      .from('insumos')
+      .update({ preco_medio_por_unidade: media })
+      .eq('id', insumoId);
+
+    if (errorUpdate) {
+      console.error('[Supabase] Erro ao atualizar preço médio:', errorUpdate);
+    }
+  } catch (error) {
+    console.error('[Database] Erro ao calcular preço médio:', error);
+  }
+}
+

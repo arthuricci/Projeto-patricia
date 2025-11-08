@@ -11,6 +11,7 @@ export interface Insumo {
   unidade_base: string;
   nivel_minimo: number;
   tipo_produto?: string;
+  preco_medio_por_unidade?: number | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -66,6 +67,7 @@ export interface Lote {
   quantidade_atual: number | null;
   data_de_validade: string | null;
   custo_total_lote: number | null;
+  preco_por_unidade?: number | null;
   created_at?: string;
   updated_at?: string;
 }

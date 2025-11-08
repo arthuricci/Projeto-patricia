@@ -193,23 +193,27 @@ export default function RegistrarCompras() {
       return;
     }
 
+    const precoPorUnidade = parseFloat(formData.preco) / parseFloat(formData.quantidade);
     createLoteMutation.mutate({
       insumo_id: selectedInsumo.id,
       quantidade_inicial: parseFloat(formData.quantidade),
       quantidade_atual: parseFloat(formData.quantidade),
       data_de_validade: formData.data_validade || null,
       custo_total_lote: parseFloat(formData.preco),
+      preco_por_unidade: precoPorUnidade,
     });
   };
 
   const handleConfirmNoValidade = () => {
     setShowNoValidadeAlert(false);
+    const precoPorUnidade = parseFloat(formData.preco) / parseFloat(formData.quantidade);
     createLoteMutation.mutate({
       insumo_id: selectedInsumo.id,
       quantidade_inicial: parseFloat(formData.quantidade),
       quantidade_atual: parseFloat(formData.quantidade),
-      data_de_validade: undefined,
+      data_de_validade: null,
       custo_total_lote: parseFloat(formData.preco),
+      preco_por_unidade: precoPorUnidade,
     });
   };
 
@@ -615,6 +619,22 @@ export default function RegistrarCompras() {
               />
             </div>
           </div>
+
+          {selectedInsumo?.preco_medio_por_unidade && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-900">
+                Preço Médio Atual: <span className="font-bold">R$ {selectedInsumo.preco_medio_por_unidade.toFixed(4)}/{selectedInsumo?.unidade_base}</span>
+              </p>
+            </div>
+          )}
+
+          {formData.quantidade && formData.preco && parseFloat(formData.quantidade) > 0 && parseFloat(formData.preco) > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm font-medium text-blue-900">
+                Preço por Unidade (Esta Compra): <span className="font-bold">R$ {(parseFloat(formData.preco) / parseFloat(formData.quantidade)).toFixed(4)}/{selectedInsumo?.unidade_base}</span>
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowFormDialog(false)}>

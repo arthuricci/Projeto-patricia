@@ -14,7 +14,8 @@ import {
   getItensListaCompras, createItemListaCompras, updateItemListaCompras, deleteItemListaCompras,
   getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque,
   getOrdensProducao, getOrdemProducaoById, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao, getOrdensProducaoPorProduto,
-  validateStockForProduction, deductStockForProduction, getProductFichasTecnicas
+  validateStockForProduction, deductStockForProduction, getProductFichasTecnicas,
+  atualizarPrecoMedioPorUnidade
 } from "./db";
 import { z } from "zod";
 
@@ -272,16 +273,22 @@ export const appRouter = router({
         quantidade_atual: z.number().min(0).nullable().optional(),
         data_de_validade: z.string().nullable().optional(),
         custo_total_lote: z.number().min(0).nullable().optional(),
+        preco_por_unidade: z.number().min(0).nullable().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote, ...rest } = input;
-        return await createLote({
+        const { quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote, preco_por_unidade, ...rest } = input;
+        const lote = await createLote({
           ...rest,
           quantidade_inicial: quantidade_inicial ?? null,
           quantidade_atual: quantidade_atual ?? null,
           data_de_validade: data_de_validade ?? null,
           custo_total_lote: custo_total_lote ?? null,
+          preco_por_unidade: preco_por_unidade ?? null,
         });
+        if (preco_por_unidade && preco_por_unidade > 0) {
+          await atualizarPrecoMedioPorUnidade(rest.insumo_id);
+        }
+        return lote;
       }),
     
     update: publicProcedure
