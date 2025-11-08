@@ -193,27 +193,23 @@ export default function RegistrarCompras() {
       return;
     }
 
-    const precoPorUnidade = parseFloat(formData.preco) / parseFloat(formData.quantidade);
     createLoteMutation.mutate({
       insumo_id: selectedInsumo.id,
       quantidade_inicial: parseFloat(formData.quantidade),
       quantidade_atual: parseFloat(formData.quantidade),
       data_de_validade: formData.data_validade || null,
       custo_total_lote: parseFloat(formData.preco),
-      preco_por_unidade: precoPorUnidade,
     });
   };
 
   const handleConfirmNoValidade = () => {
     setShowNoValidadeAlert(false);
-    const precoPorUnidade = parseFloat(formData.preco) / parseFloat(formData.quantidade);
     createLoteMutation.mutate({
       insumo_id: selectedInsumo.id,
       quantidade_inicial: parseFloat(formData.quantidade),
       quantidade_atual: parseFloat(formData.quantidade),
       data_de_validade: undefined,
       custo_total_lote: parseFloat(formData.preco),
-      preco_por_unidade: precoPorUnidade,
     });
   };
 
@@ -267,13 +263,11 @@ export default function RegistrarCompras() {
       return;
     }
 
-    const precoPorUnidade = parseFloat(editFormData.preco) / parseFloat(editFormData.quantidade);
     updateLoteMutation.mutate({
       id: loteToEdit.id,
       quantidade_atual: parseFloat(editFormData.quantidade),
       data_de_validade: editFormData.data_validade || null,
       custo_total_lote: parseFloat(editFormData.preco),
-      preco_por_unidade: precoPorUnidade,
     });
   };
 
@@ -622,22 +616,6 @@ export default function RegistrarCompras() {
             </div>
           </div>
 
-          {selectedInsumo?.preco_medio_por_unidade && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-green-900">
-                Preço Médio Atual: <span className="text-lg font-bold text-green-600">R$ {selectedInsumo.preco_medio_por_unidade.toFixed(4)}/{selectedInsumo?.unidade_base}</span>
-              </p>
-            </div>
-          )}
-
-          {formData.quantidade && formData.preco && parseFloat(formData.quantidade) > 0 && parseFloat(formData.preco) > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-blue-900">
-                Preço por Unidade (Esta Compra): <span className="text-lg font-bold text-blue-600">R$ {(parseFloat(formData.preco) / parseFloat(formData.quantidade)).toFixed(4)}/{selectedInsumo?.unidade_base}</span>
-              </p>
-            </div>
-          )}
-
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowFormDialog(false)}>
               Cancelar
@@ -662,8 +640,7 @@ export default function RegistrarCompras() {
                 <TableRow>
                   <TableHead>Quantidade</TableHead>
                   <TableHead>Data Validade</TableHead>
-                  <TableHead>Preço Total</TableHead>
-                  <TableHead>Preço/Unidade</TableHead>
+                  <TableHead>Preço</TableHead>
                   <TableHead>Data Registro</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -671,7 +648,7 @@ export default function RegistrarCompras() {
               <TableBody>
                 {lotesDoInsumo.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                       Nenhuma compra registrada
                     </TableCell>
                   </TableRow>
@@ -685,7 +662,6 @@ export default function RegistrarCompras() {
                           : "Sem data"}
                       </TableCell>
                       <TableCell>R$ {lote.custo_total_lote.toFixed(2)}</TableCell>
-                      <TableCell>R$ {lote.preco_por_unidade ? lote.preco_por_unidade.toFixed(4) : '-'}</TableCell>
                       <TableCell>
                         {new Date(lote.created_at).toLocaleDateString('pt-BR')}
                       </TableCell>
@@ -760,14 +736,6 @@ export default function RegistrarCompras() {
               />
             </div>
           </div>
-
-          {editFormData.quantidade && editFormData.preco && parseFloat(editFormData.quantidade) > 0 && parseFloat(editFormData.preco) > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-blue-900">
-                Preço por Unidade: <span className="text-lg font-bold text-blue-600">R$ {(parseFloat(editFormData.preco) / parseFloat(editFormData.quantidade)).toFixed(4)}/{loteToEdit?.insumo?.unidade_base}</span>
-              </p>
-            </div>
-          )}
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowEditLoteDialog(false)}>

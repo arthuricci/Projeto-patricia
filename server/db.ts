@@ -709,7 +709,7 @@ export async function getInsumosCriticos(): Promise<Array<Insumo & { quantidade_
   });
   
   // Retornar apenas insumos com estoque <= nível mínimo
-  return insumosComEstoque.filter((insumo) => insumo.nivel_minimo && insumo.quantidade_estoque <= insumo.nivel_minimo);
+  return insumosComEstoque.filter((insumo) => insumo.quantidade_estoque <= insumo.nivel_minimo);
 }
 
 
@@ -983,65 +983,6 @@ export async function deductStockForProduction(
   } catch (error) {
     console.error('[Database] Erro ao deduzir estoque:', error);
     throw error;
-  }
-}
-
-
-
-
-// ===== HISTÓRICO DE PREÇOS E CÁLCULO DE MÉDIA =====
-
-export async function createHistoricoPreco(
-  insumoId: string,
-  precoPorUnidade: number,
-  quantidadeLote: number | null
-): Promise<void> {
-  const { error } = await supabase
-    .from('historico_precos_insumos')
-    .insert([{
-      insumo_id: insumoId,
-      preco_por_unidade: precoPorUnidade,
-      quantidade_lote: quantidadeLote,
-    }]);
-
-  if (error) {
-    console.error('[Supabase] Erro ao criar histórico de preço:', error);
-    throw new Error(`Erro ao criar histórico de preço: ${error.message}`);
-  }
-}
-
-export async function calcularPrecoMedioPorUnidade(insumoId: string): Promise<number | null> {
-  const { data, error } = await supabase
-    .from('historico_precos_insumos')
-    .select('preco_por_unidade')
-    .eq('insumo_id', insumoId);
-
-  if (error) {
-    console.error('[Supabase] Erro ao buscar histórico de preços:', error);
-    throw new Error(`Erro ao buscar histórico de preços: ${error.message}`);
-  }
-
-  if (!data || data.length === 0) {
-    return null;
-  }
-
-  const soma = data.reduce((acc: number, item: any) => acc + (item.preco_por_unidade || 0), 0);
-  const media = soma / data.length;
-  
-  return media;
-}
-
-export async function atualizarPrecoMedioPorUnidade(insumoId: string): Promise<void> {
-  const precoMedio = await calcularPrecoMedioPorUnidade(insumoId);
-  
-  const { error } = await supabase
-    .from('insumos')
-    .update({ preco_medio_por_unidade: precoMedio })
-    .eq('id', insumoId);
-
-  if (error) {
-    console.error('[Supabase] Erro ao atualizar preço médio:', error);
-    throw new Error(`Erro ao atualizar preço médio: ${error.message}`);
   }
 }
 
