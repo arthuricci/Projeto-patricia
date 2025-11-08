@@ -1,0 +1,13 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS historico_precos_insumos (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  insumo_id UUID NOT NULL REFERENCES insumos(id) ON DELETE CASCADE,\n  preco_por_unidade NUMERIC NOT NULL,\n  quantidade_lote NUMERIC,\n  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 26wh2e6DeXL6QVb.root --database em9brmNf2SiPYuJrmAHMq8 --execute CREATE TABLE IF NOT EXISTS historico_precos_insumos (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  insumo_id UUID NOT NULL REFERENCES insumos(id) ON DELETE CASCADE,\n  preco_por_unidade NUMERIC NOT NULL,\n  quantidade_lote NUMERIC,\n  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 2 column 10 near \"UUID PRIMARY KEY DEFAULT gen_random_uuid(),",
+    "  insumo_id UUID NOT NULL REFERENCES insumos(id) ON DELETE CASCADE,",
+    "  preco_por_unidade NUMERIC NOT NULL,",
+    "  quantidade_lote NUMERIC,",
+    "  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()",
+    ")\""
+  ]
+}

@@ -7,12 +7,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface Insumo {
   id: string;
-  nome: string;
-  unidade_base: string;
-  nivel_minimo: number;
-  tipo_produto?: string;
+  nome: string | null;
+  unidade_base: string | null;
+  nivel_minimo: number | null;
+  tipo_produto: string | null;
+  preco_medio_por_unidade?: number | null;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface HistoricoPrecoInsumo {
+  id: string;
+  insumo_id: string;
+  preco_por_unidade: number;
+  quantidade_lote: number | null;
+  created_at?: string;
 }
 
 export interface Cliente {
@@ -66,6 +75,7 @@ export interface Lote {
   quantidade_atual: number | null;
   data_de_validade: string | null;
   custo_total_lote: number | null;
+  preco_por_unidade: number | null;
   created_at?: string;
   updated_at?: string;
 }

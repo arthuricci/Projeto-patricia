@@ -44,7 +44,7 @@ export default function VerEstoque() {
         .filter((lote: any) => lote.insumo_id === insumo.id)
         .reduce((sum: number, lote: any) => sum + (lote.quantidade_atual || 0), 0);
 
-      const status = quantidadeTotal < insumo.nivel_minimo ? "critico" : quantidadeTotal === insumo.nivel_minimo ? "minimo" : "ok";
+      const status = insumo.nivel_minimo && quantidadeTotal < insumo.nivel_minimo ? "critico" : quantidadeTotal === insumo.nivel_minimo ? "minimo" : "ok";
 
       return {
         ...insumo,
@@ -288,4 +288,3 @@ export default function VerEstoque() {
     </div>
   );
 }
-
