@@ -94,8 +94,11 @@ export default function RegistrarCompras() {
       setShowFormDialog(false);
       setSelectedInsumo(null);
       setFormData({ quantidade: "", data_validade: "", preco: "" });
-      refetch();
-      refetchLotes();
+      // Refetch both insumos (to get updated preco_medio_por_unidade) and lotes
+      setTimeout(() => {
+        refetch();
+        refetchLotes();
+      }, 500);
     },
     onError: (error) => {
       toast.error(`Erro ao registrar compra: ${error.message}`);

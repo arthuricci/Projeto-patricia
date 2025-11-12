@@ -993,6 +993,8 @@ export async function deductStockForProduction(
 
 export async function atualizarPrecoMedioPorUnidade(insumoId: string): Promise<void> {
   try {
+    console.log(`[DEBUG] Iniciando calculo de preco medio para insumo: ${insumoId}`);
+    
     // Busca todos os lotes do insumo que têm preco_por_unidade
     const { data: lotes, error: errorLotes } = await supabase
       .from('lotes')
@@ -1000,25 +1002,37 @@ export async function atualizarPrecoMedioPorUnidade(insumoId: string): Promise<v
       .eq('insumo_id', insumoId)
       .not('preco_por_unidade', 'is', null);
 
-    if (errorLotes || !lotes || lotes.length === 0) {
+    console.log(`[DEBUG] Lotes encontrados: ${lotes?.length || 0}`, lotes);
+
+    if (errorLotes) {
+      console.error('[Supabase] Erro ao buscar lotes:', errorLotes);
+      return;
+    }
+
+    if (!lotes || lotes.length === 0) {
+      console.log(`[DEBUG] Nenhum lote com preco encontrado para insumo ${insumoId}`);
       return;
     }
 
     // Calcula média simples
     const soma = lotes.reduce((acc: number, lote: any) => acc + (lote.preco_por_unidade || 0), 0);
     const media = soma / lotes.length;
+    
+    console.log(`[DEBUG] Media calculada: ${media} (soma: ${soma}, quantidade: ${lotes.length})`);
 
     // Atualiza insumo com o novo preço médio
     const { error: errorUpdate } = await supabase
-      .from('insumos')
+      .from('Insumos')
       .update({ preco_medio_por_unidade: media })
       .eq('id', insumoId);
 
     if (errorUpdate) {
-      console.error('[Supabase] Erro ao atualizar preço médio:', errorUpdate);
+      console.error('[Supabase] Erro ao atualizar preco medio:', errorUpdate);
+    } else {
+      console.log(`[DEBUG] Preco medio atualizado com sucesso para ${media}`);
     }
   } catch (error) {
-    console.error('[Database] Erro ao calcular preço médio:', error);
+    console.error('[Database] Erro ao calcular preco medio:', error);
   }
 }
 

@@ -220,19 +220,19 @@ export default function VerEstoque() {
                 </div>
               </TableHead>
               <TableHead>Status</TableHead>
-
+              <TableHead>Preço Médio/Unidade</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : paginatedInsumos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   Nenhum insumo encontrado
                 </TableCell>
               </TableRow>
@@ -249,7 +249,9 @@ export default function VerEstoque() {
                       {getStatusLabel(insumo.status)}
                     </span>
                   </TableCell>
-
+                  <TableCell>
+                    {insumo.preco_medio_por_unidade ? `R$ ${insumo.preco_medio_por_unidade.toFixed(2)}/${insumo.unidade_base}` : '-'}
+                  </TableCell>
                 </TableRow>
               ))
             )}

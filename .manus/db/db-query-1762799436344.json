@@ -1,0 +1,9 @@
+{
+  "query": "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'Insumos' ORDER BY ordinal_position;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 26wh2e6DeXL6QVb.root --database em9brmNf2SiPYuJrmAHMq8 --execute SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'Insumos' ORDER BY ordinal_position;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 181
+}

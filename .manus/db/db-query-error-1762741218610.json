@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE \"Insumos\" ADD COLUMN IF NOT EXISTS preco_medio_por_unidade NUMERIC DEFAULT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 26wh2e6DeXL6QVb.root --database em9brmNf2SiPYuJrmAHMq8 --execute ALTER TABLE \"Insumos\" ADD COLUMN IF NOT EXISTS preco_medio_por_unidade NUMERIC DEFAULT NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 21 near \"\"Insumos\" ADD COLUMN IF NOT EXISTS preco_medio_por_unidade NUMERIC DEFAULT NULL\""
+  ]
+}

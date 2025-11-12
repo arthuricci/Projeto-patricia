@@ -1,0 +1,9 @@
+{
+  "query": "SELECT column_name FROM information_schema.columns WHERE table_name = 'Insumos' AND column_name = 'preco_medio_por_unidade';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 26wh2e6DeXL6QVb.root --database em9brmNf2SiPYuJrmAHMq8 --execute SELECT column_name FROM information_schema.columns WHERE table_name = 'Insumos' AND column_name = 'preco_medio_por_unidade';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 927
+}

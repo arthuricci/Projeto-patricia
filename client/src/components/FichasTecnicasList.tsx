@@ -617,11 +617,17 @@ export default function FichasTecnicasList() {
                 <p className="text-center text-gray-500 py-4">Nenhum ingrediente adicionado</p>
               ) : (
                 <div className="space-y-2">
-                  {ingredientes.map((ingrediente: any) => (
+                  {ingredientes.map((ingrediente: any) => {
+                    const insumo = insumos.find((i: any) => i.id === ingrediente.insumo_id);
+                    const custoIngrediente = insumo?.preco_medio_por_unidade ? (ingrediente.quantidade * insumo.preco_medio_por_unidade) : 0;
+                    return (
                     <div key={ingrediente.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                       <div>
                         <p className="font-medium">{getInsumoNome(ingrediente.insumo_id)}</p>
                         <p className="text-sm text-gray-600">{ingrediente.quantidade} {getInsumoUnidade(ingrediente.insumo_id)}</p>
+                        {insumo?.preco_medio_por_unidade && (
+                          <p className="text-xs text-blue-600 mt-1">Custo: R$ {custoIngrediente.toFixed(2)}</p>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
@@ -633,7 +639,8 @@ export default function FichasTecnicasList() {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>

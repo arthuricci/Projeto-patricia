@@ -342,13 +342,14 @@ export default function ListaComprasPage() {
                     <TableHead>Insumo</TableHead>
                     <TableHead>Unidade</TableHead>
                     <TableHead>Quantidade</TableHead>
+                    <TableHead>Preço Médio/Unidade</TableHead>
                     <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {itensLista.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                         Nenhum item nesta lista
                       </TableCell>
                     </TableRow>
@@ -358,6 +359,9 @@ export default function ListaComprasPage() {
                         <TableCell className="font-medium">{item.insumo?.nome || 'Insumo desconhecido'}</TableCell>
                         <TableCell>{item.insumo?.unidade_base || '-'}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
+                        <TableCell>
+                          {item.insumo?.preco_medio_por_unidade ? `R$ ${item.insumo.preco_medio_por_unidade.toFixed(2)}/${item.insumo.unidade_base}` : '-'}
+                        </TableCell>
                         <TableCell className="text-right">
                           <Button
                             size="sm"
