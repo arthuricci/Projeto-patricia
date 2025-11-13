@@ -70,3 +70,20 @@
 - [x] Testes - Compilacao TypeScript sem erros
 - [x] Testes - Componente renderiza corretamente
 
+
+
+## Fase 3.6: Calculadora de Preco Medio por Unidade (COMPLETO)
+- [x] Backend - Adicionar coluna preco_por_unidade na tabela lotes
+- [x] Backend - Adicionar coluna preco_medio_por_unidade na tabela insumos
+- [x] Backend - Implementar funcao calcularPrecoMedioPorUnidade()
+- [x] Backend - Implementar funcao atualizarPrecoMedioPorUnidade()
+- [x] Backend - Integrar calculo automatico ao registrar compras
+- [x] Frontend - Exibir preco medio em Registrar Compras (badge verde)
+- [x] Frontend - Exibir preco por unidade em Registrar Compras (badge azul)
+- [x] Frontend - Adicionar coluna preco_medio_por_unidade em Ver Estoque
+- [x] Frontend - Adicionar preco medio em Fichas Tecnicas (custo de ingredientes)
+- [x] Frontend - Adicionar coluna Preco Medio/Unidade em Lista de Compras (lista automatica)
+- [x] Frontend - Adicionar coluna Preco Total da Compra em Lista de Compras (itens manuais)
+- [x] Testes - Calculo funcionando corretamente (quantidade × preco_medio)
+- [x] Testes - Preco total exibindo corretamente em todas as paginas
+

@@ -191,6 +191,7 @@ export default function ListaComprasPage() {
                         <TableHead>Estoque Atual</TableHead>
                         <TableHead>Nível Mínimo</TableHead>
                         <TableHead>Tipo</TableHead>
+                        <TableHead>Preço Médio/Unidade</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -204,6 +205,9 @@ export default function ListaComprasPage() {
                           </TableCell>
                           <TableCell>{insumo.nivel_minimo} {insumo.unidade_base}</TableCell>
                           <TableCell>{insumo.tipo_produto || '-'}</TableCell>
+                          <TableCell>
+                            {insumo.preco_medio_por_unidade ? `R$ ${insumo.preco_medio_por_unidade.toFixed(2)}/${insumo.unidade_base}` : '-'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -228,6 +232,7 @@ export default function ListaComprasPage() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>Preço Total</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -245,11 +250,22 @@ export default function ListaComprasPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedListas.map((lista: any) => (
+                    paginatedListas.map((lista: any) => {
+                      const precoTotalLista = itensLista
+                        .filter((item: any) => item.lista_compras_id === lista.id)
+                        .reduce((total: number, item: any) => {
+                          const preco = item.insumo?.preco_medio_por_unidade || 0;
+                          return total + (item.quantidade * preco);
+                        }, 0);
+                      
+                      return (
                       <TableRow key={lista.id}>
                         <TableCell className="font-medium">{lista.nome}</TableCell>
                         <TableCell>
                           {lista.data ? new Date(lista.data).toLocaleDateString('pt-BR') : '-'}
+                        </TableCell>
+                        <TableCell>
+                          R$ {precoTotalLista.toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button
@@ -272,7 +288,8 @@ export default function ListaComprasPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
+                    );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -343,24 +360,30 @@ export default function ListaComprasPage() {
                     <TableHead>Unidade</TableHead>
                     <TableHead>Quantidade</TableHead>
                     <TableHead>Preço Médio/Unidade</TableHead>
+                    <TableHead>Preço Total da Compra</TableHead>
                     <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {itensLista.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                         Nenhum item nesta lista
                       </TableCell>
                     </TableRow>
                   ) : (
-                    itensLista.map((item: any) => (
+                    itensLista.map((item: any) => {
+                      const precoTotalCompra = item.insumo?.preco_medio_por_unidade ? (item.quantidade * item.insumo.preco_medio_por_unidade) : 0;
+                      return (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.insumo?.nome || 'Insumo desconhecido'}</TableCell>
                         <TableCell>{item.insumo?.unidade_base || '-'}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
                         <TableCell>
                           {item.insumo?.preco_medio_por_unidade ? `R$ ${item.insumo.preco_medio_por_unidade.toFixed(2)}/${item.insumo.unidade_base}` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          R$ {precoTotalCompra.toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -374,7 +397,8 @@ export default function ListaComprasPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
+                    );
+                    })
                   )}
                 </TableBody>
               </Table>
