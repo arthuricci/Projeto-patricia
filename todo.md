@@ -87,3 +87,33 @@
 - [x] Testes - Calculo funcionando corretamente (quantidade × preco_medio)
 - [x] Testes - Preco total exibindo corretamente em todas as paginas
 
+
+
+## Bugs Encontrados
+- [ ] Lista de Compras - Preço Total não está somando itens (mostra R$ 0.00)
+
+
+
+## Bugs Encontrados - Correção 2
+- [ ] Ver Estoque - Unificar colunas "Nível Mínimo" e "Unidade" em uma coluna (ex: 500G)
+- [ ] Registrar Compras - Ao editar compra, recalcular preço médio do insumo
+
+
+
+
+## Pack de Adições/Correções - Estoque
+
+### 3. Registrar Compras
+- [x] 3.1: Manter quantidade original em registros de compra (não diminuir ao dar baixa)
+- [x] 3.2: Exibir data correta de registro (não 31/12/1969)
+
+### 4. Dar Baixa
+- [ ] 4.1: Adicionar data obrigatória ao dar baixa manual
+- [ ] 4.2: Adicionar campo de seleção do motivo de perda (configurável)
+- [ ] 4.3: Criar Página de Desperdício com cards de insumos
+- [ ] 4.4: Adicionar filtros de tempo na Página de Desperdício
+
+### 5. Lista de Compras
+- [ ] 5.1: Converter tabela de listas para cards
+- [ ] 5.2: Adicionar função de registrar compra da lista automaticamente
+

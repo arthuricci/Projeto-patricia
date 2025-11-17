@@ -445,10 +445,13 @@ export async function getLotes(insumoId?: string): Promise<LoteComInsumo[]> {
   }));
 }
 
-export async function createLote(lote: Omit<Lote, 'id' | 'created_at' | 'updated_at'>): Promise<Lote> {
+export async function createLote(lote: Omit<Lote, 'id' | 'created_at' | 'updated_at'> & { created_at?: string | null }): Promise<Lote> {
+  const { created_at, ...loteData } = lote;
+  const dataToInsert = created_at ? { ...loteData, created_at } : loteData;
+  
   const { data, error } = await supabase
     .from('lotes')
-    .insert([lote])
+    .insert([dataToInsert])
     .select()
     .single();
 
@@ -503,6 +506,25 @@ export async function getListasCompras(): Promise<ListaCompras[]> {
   return data || [];
 }
 
+export async function getListasComprasComTotal(): Promise<any[]> {
+  const listas = await getListasCompras();
+  const todosItens = await getAllItensListaCompras();
+  
+  return listas.map((lista: any) => {
+    const precoTotal = todosItens
+      .filter((item: any) => item.lista_compras_id === lista.id)
+      .reduce((total: number, item: any) => {
+        const preco = item.insumo?.preco_medio_por_unidade || 0;
+        return total + (item.quantidade * preco);
+      }, 0);
+    
+    return {
+      ...lista,
+      preco_total: precoTotal,
+    };
+  });
+}
+
 export async function createListaCompras(lista: Omit<ListaCompras, 'id' | 'created_at' | 'updated_at'>): Promise<ListaCompras> {
   const { data, error } = await supabase
     .from('lista_compras')
@@ -547,6 +569,45 @@ export async function deleteListaCompras(id: string): Promise<void> {
 }
 
 // Funções para gerenciar itens de lista de compras
+// Get all items for all lists (used for calculating totals)
+export async function getAllItensListaCompras(): Promise<ItemListaComprasComInsumo[]> {
+  const { data, error } = await supabase
+    .from('itens_lista_compras')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar todos os itens de listas de compras:', error);
+    throw new Error(`Erro ao buscar itens: ${error.message}`);
+  }
+
+  const itens = data || [];
+  const insumosIdsSet = new Set(itens.map((item: any) => item.insumo_id));
+  const insumosIds = Array.from(insumosIdsSet);
+  
+  if (insumosIds.length === 0) {
+    return itens.map((item: any) => ({
+      ...item,
+      insumo: null,
+    }));
+  }
+
+  const { data: insumosData } = await supabase
+    .from('Insumos')
+    .select('*')
+    .in('id', insumosIds);
+
+  const insumosMap = (insumosData || []).reduce((acc: any, insumo: any) => {
+    acc[insumo.id] = insumo;
+    return acc;
+  }, {});
+
+  return itens.map((item: any) => ({
+    ...item,
+    insumo: insumosMap[item.insumo_id] || null,
+  }));
+}
+
 export async function getItensListaCompras(listaId: string): Promise<ItemListaComprasComInsumo[]> {
   const { data, error } = await supabase
     .from('itens_lista_compras')

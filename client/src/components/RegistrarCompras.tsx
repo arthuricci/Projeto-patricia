@@ -37,12 +37,14 @@ interface FormData {
   quantidade: string;
   data_validade: string;
   preco: string;
+  data_registro: string;
 }
 
 interface EditFormData {
   quantidade: string;
   data_validade: string;
   preco: string;
+  data_registro: string;
 }
 
 export default function RegistrarCompras() {
@@ -56,6 +58,7 @@ export default function RegistrarCompras() {
     quantidade: "",
     data_validade: "",
     preco: "",
+    data_registro: new Date().toISOString().split('T')[0],
   });
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showNoValidadeAlert, setShowNoValidadeAlert] = useState(false);
@@ -79,6 +82,7 @@ export default function RegistrarCompras() {
     quantidade: "",
     data_validade: "",
     preco: "",
+    data_registro: new Date().toISOString().split('T')[0],
   });
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [loteToDelete, setLoteToDelete] = useState<any>(null);
@@ -93,7 +97,7 @@ export default function RegistrarCompras() {
       toast.success("Compra registrada com sucesso!");
       setShowFormDialog(false);
       setSelectedInsumo(null);
-      setFormData({ quantidade: "", data_validade: "", preco: "" });
+      setFormData({ quantidade: "", data_validade: "", preco: "", data_registro: new Date().toISOString().split('T')[0] });
       // Refetch both insumos (to get updated preco_medio_por_unidade) and lotes
       setTimeout(() => {
         refetch();
@@ -110,7 +114,7 @@ export default function RegistrarCompras() {
       toast.success("Compra atualizada com sucesso!");
       setShowEditLoteDialog(false);
       setLoteToEdit(null);
-      setEditFormData({ quantidade: "", data_validade: "", preco: "" });
+      setEditFormData({ quantidade: "", data_validade: "", preco: "", data_registro: new Date().toISOString().split('T')[0] });
       refetchLotes();
     },
     onError: (error) => {
@@ -204,6 +208,7 @@ export default function RegistrarCompras() {
       data_de_validade: formData.data_validade || null,
       custo_total_lote: parseFloat(formData.preco),
       preco_por_unidade: precoPorUnidade,
+      created_at: formData.data_registro || null,
     });
   };
 
@@ -217,6 +222,7 @@ export default function RegistrarCompras() {
       data_de_validade: null,
       custo_total_lote: parseFloat(formData.preco),
       preco_por_unidade: precoPorUnidade,
+      created_at: formData.data_registro || null,
     });
   };
 
@@ -255,6 +261,7 @@ export default function RegistrarCompras() {
       quantidade: lote.quantidade_atual.toString(),
       data_validade: lote.data_de_validade ? new Date(lote.data_de_validade).toISOString().split('T')[0] : "",
       preco: lote.custo_total_lote.toString(),
+      data_registro: lote.created_at ? new Date(lote.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
     setShowEditLoteDialog(true);
   };
@@ -272,9 +279,11 @@ export default function RegistrarCompras() {
 
     updateLoteMutation.mutate({
       id: loteToEdit.id,
+      insumo_id: loteToEdit.insumo_id,
       quantidade_atual: parseFloat(editFormData.quantidade),
       data_de_validade: editFormData.data_validade || null,
       custo_total_lote: parseFloat(editFormData.preco),
+      created_at: editFormData.data_registro || null,
     });
   };
 
@@ -621,6 +630,16 @@ export default function RegistrarCompras() {
                 step="0.01"
               />
             </div>
+
+            <div>
+              <Label>Data de Registro</Label>
+              <Input
+                type="date"
+                value={formData.data_registro}
+                onChange={(e) => setFormData({ ...formData, data_registro: e.target.value })}
+              />
+              <p className="text-xs text-gray-500 mt-1">Data atual é pré-selecionada</p>
+            </div>
           </div>
 
           {selectedInsumo?.preco_medio_por_unidade && (
@@ -756,6 +775,15 @@ export default function RegistrarCompras() {
                 onChange={(e) => setEditFormData({ ...editFormData, preco: e.target.value })}
                 min="0"
                 step="0.01"
+              />
+            </div>
+
+            <div>
+              <Label>Data de Registro</Label>
+              <Input
+                type="date"
+                value={editFormData.data_registro}
+                onChange={(e) => setEditFormData({ ...editFormData, data_registro: e.target.value })}
               />
             </div>
           </div>

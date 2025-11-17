@@ -127,19 +127,12 @@ export default function DarBaixaInsumos() {
 
   const handleConfirmBaixa = () => {
     const quantidade = parseFloat(quantidadeBaixa);
-    const novaQuantidade = selectedLote.quantidade_atual - quantidade;
 
-    // Criar registro de baixa
+    // Criar registro de baixa (lote original permanece intacto)
     createBaixaMutation.mutate({
       lote_id: selectedLote.id,
       quantidade_baixada: quantidade,
       motivo: "manual",
-    });
-
-    // Atualizar quantidade do lote
-    updateLoteMutation.mutate({
-      id: selectedLote.id,
-      quantidade_atual: novaQuantidade,
     });
   };
 

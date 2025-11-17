@@ -211,7 +211,6 @@ export default function VerEstoque() {
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead>Unidade</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort("quantidade")}>
                 <div className="flex items-center gap-2">
@@ -226,13 +225,13 @@ export default function VerEstoque() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : paginatedInsumos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   Nenhum insumo encontrado
                 </TableCell>
               </TableRow>
@@ -240,8 +239,7 @@ export default function VerEstoque() {
               paginatedInsumos.map((insumo: any) => (
                 <TableRow key={insumo.id}>
                   <TableCell className="font-medium">{insumo.nome}</TableCell>
-                  <TableCell>{insumo.nivel_minimo}</TableCell>
-                  <TableCell>{insumo.unidade_base}</TableCell>
+                  <TableCell>{insumo.nivel_minimo} ({insumo.unidade_base})</TableCell>
                   <TableCell>{insumo.tipo_produto || '-'}</TableCell>
                   <TableCell>{insumo.quantidade_estoque}</TableCell>
                   <TableCell>

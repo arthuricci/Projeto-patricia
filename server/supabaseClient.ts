@@ -97,6 +97,10 @@ export interface ItemListaComprasComInsumo extends ItemListaCompras {
   insumo?: Insumo;
 }
 
+export interface ListaComprasComTotal extends ListaCompras {
+  preco_total: number;
+}
+
 export interface BaixaEstoque {
   id: string;
   lote_id: string;

@@ -45,7 +45,7 @@ export default function ListaComprasPage() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
   // Queries
-  const { data: listas = [], isLoading: loadingListas, refetch: refetchListas } = trpc.listasCompras.list.useQuery();
+  const { data: listas = [], isLoading: loadingListas, refetch: refetchListas } = trpc.listasCompras.listWithTotals.useQuery();
   const { data: insumos = [] } = trpc.insumos.list.useQuery();
   const { data: insumosCriticos = [] } = trpc.insumos.criticos.useQuery();
   const { data: itensLista = [], refetch: refetchItens } = trpc.itensListaCompras.listByLista.useQuery(
@@ -251,12 +251,7 @@ export default function ListaComprasPage() {
                     </TableRow>
                   ) : (
                     paginatedListas.map((lista: any) => {
-                      const precoTotalLista = itensLista
-                        .filter((item: any) => item.lista_compras_id === lista.id)
-                        .reduce((total: number, item: any) => {
-                          const preco = item.insumo?.preco_medio_por_unidade || 0;
-                          return total + (item.quantidade * preco);
-                        }, 0);
+                      const precoTotalLista = lista.preco_total || 0;
                       
                       return (
                       <TableRow key={lista.id}>

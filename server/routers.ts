@@ -10,10 +10,10 @@ import {
   getFichasTecnicas, createFichaTecnica, updateFichaTecnica, deleteFichaTecnica,
   getIngredientesByFicha, createIngrediente, updateIngrediente, deleteIngrediente,
   getLotes, createLote, updateLote, deleteLote,
-  getListasCompras, createListaCompras, updateListaCompras, deleteListaCompras,
-  getItensListaCompras, createItemListaCompras, updateItemListaCompras, deleteItemListaCompras,
+  getListasCompras, getListasComprasComTotal, createListaCompras, updateListaCompras, deleteListaCompras,
+  getItensListaCompras, getAllItensListaCompras, createItemListaCompras, updateItemListaCompras, deleteItemListaCompras,
   getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque,
-  getOrdensProducao, getOrdemProducaoById, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao, getOrdensProducaoPorProduto,
+  getOrdensProducao, getOrdemProducaoById, getOrdensProducaoPorProduto, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao,
   validateStockForProduction, deductStockForProduction, getProductFichasTecnicas,
   atualizarPrecoMedioPorUnidade
 } from "./db";
@@ -274,9 +274,10 @@ export const appRouter = router({
         data_de_validade: z.string().nullable().optional(),
         custo_total_lote: z.number().min(0).nullable().optional(),
         preco_por_unidade: z.number().min(0).nullable().optional(),
+        created_at: z.string().nullable().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote, preco_por_unidade, ...rest } = input;
+        const { quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote, preco_por_unidade, created_at, ...rest } = input;
         const lote = await createLote({
           ...rest,
           quantidade_inicial: quantidade_inicial ?? null,
@@ -284,6 +285,7 @@ export const appRouter = router({
           data_de_validade: data_de_validade ?? null,
           custo_total_lote: custo_total_lote ?? null,
           preco_por_unidade: preco_por_unidade ?? null,
+          created_at: created_at ?? null,
         });
         if (preco_por_unidade && preco_por_unidade > 0) {
           await atualizarPrecoMedioPorUnidade(rest.insumo_id);
@@ -294,19 +296,28 @@ export const appRouter = router({
     update: publicProcedure
       .input(z.object({
         id: z.string().uuid(),
+        insumo_id: z.string().uuid().optional(),
         quantidade_inicial: z.number().min(0).nullable().optional(),
         quantidade_atual: z.number().min(0).nullable().optional(),
         data_de_validade: z.string().nullable().optional(),
         custo_total_lote: z.number().min(0).nullable().optional(),
+        created_at: z.string().nullable().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { id, quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote } = input;
-        return await updateLote(id, {
+        const { id, insumo_id, quantidade_inicial, quantidade_atual, data_de_validade, custo_total_lote, created_at } = input;
+        const result = await updateLote(id, {
           ...(quantidade_inicial !== undefined && { quantidade_inicial: quantidade_inicial ?? null }),
           ...(quantidade_atual !== undefined && { quantidade_atual: quantidade_atual ?? null }),
           ...(data_de_validade !== undefined && { data_de_validade: data_de_validade ?? null }),
           ...(custo_total_lote !== undefined && { custo_total_lote: custo_total_lote ?? null }),
+          ...(created_at !== undefined && { created_at: created_at ?? null }),
         });
+        
+        if (insumo_id) {
+          await atualizarPrecoMedioPorUnidade(insumo_id);
+        }
+        
+        return result;
       }),
     
     delete: publicProcedure
@@ -321,6 +332,10 @@ export const appRouter = router({
   listasCompras: router({
     list: publicProcedure.query(async () => {
       return await getListasCompras();
+    }),
+    
+    listWithTotals: publicProcedure.query(async () => {
+      return await getListasComprasComTotal();
     }),
     
     create: publicProcedure
