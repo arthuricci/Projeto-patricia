@@ -41,7 +41,11 @@ export default function DarBaixaInsumos() {
   const [selectedLote, setSelectedLote] = useState<any>(null);
   const [showBaixaDialog, setShowBaixaDialog] = useState(false);
   const [quantidadeBaixa, setQuantidadeBaixa] = useState("");
+  const [dataBaixa, setDataBaixa] = useState(new Date().toISOString().split('T')[0]);
+  const [motivoBaixa, setMotivoBaixa] = useState("desperdicio");
   const [showConfirmAlert, setShowConfirmAlert] = useState(false);
+
+  const MOTIVOS_PERDA = ["desperdicio", "vencimento", "dano", "roubo", "outro"];
 
   // Queries
   const { data: insumos = [], isLoading, refetch } = trpc.insumos.list.useQuery();
@@ -116,6 +120,11 @@ export default function DarBaixaInsumos() {
       return;
     }
 
+    if (!dataBaixa) {
+      toast.error("Data da baixa é obrigatória");
+      return;
+    }
+
     const quantidade = parseFloat(quantidadeBaixa);
     if (quantidade > selectedLote.quantidade_atual) {
       toast.error(`Quantidade não pode ser maior que ${selectedLote.quantidade_atual}`);
@@ -132,7 +141,8 @@ export default function DarBaixaInsumos() {
     createBaixaMutation.mutate({
       lote_id: selectedLote.id,
       quantidade_baixada: quantidade,
-      motivo: "manual",
+      motivo: motivoBaixa,
+      data_baixa: dataBaixa,
     });
   };
 
@@ -357,6 +367,31 @@ export default function DarBaixaInsumos() {
               <p className="text-xs text-gray-500 mt-1">
                 Máximo: {selectedLote?.quantidade_atual}
               </p>
+            </div>
+
+            <div>
+              <Label>Data da Baixa *</Label>
+              <Input
+                type="date"
+                value={dataBaixa}
+                onChange={(e) => setDataBaixa(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>Motivo da Perda *</Label>
+              <Select value={motivoBaixa} onValueChange={setMotivoBaixa}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desperdicio">Desperdício</SelectItem>
+                  <SelectItem value="vencimento">Vencimento</SelectItem>
+                  <SelectItem value="dano">Dano</SelectItem>
+                  <SelectItem value="roubo">Roubo</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

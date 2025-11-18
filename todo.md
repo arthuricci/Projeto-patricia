@@ -104,12 +104,12 @@
 ## Pack de Adições/Correções - Estoque
 
 ### 3. Registrar Compras
-- [x] 3.1: Manter quantidade original em registros de compra (não diminuir ao dar baixa)
+- [ ] 3.1: Manter quantidade original em registros de compra (DEFER - complexidade alta, requer refactor de cálculo de estoque)
 - [x] 3.2: Exibir data correta de registro (não 31/12/1969)
 
 ### 4. Dar Baixa
-- [ ] 4.1: Adicionar data obrigatória ao dar baixa manual
-- [ ] 4.2: Adicionar campo de seleção do motivo de perda (configurável)
+- [x] 4.1: Adicionar data obrigatória ao dar baixa manual
+- [x] 4.2: Adicionar campo de seleção do motivo de perda (configurável)
 - [ ] 4.3: Criar Página de Desperdício com cards de insumos
 - [ ] 4.4: Adicionar filtros de tempo na Página de Desperdício
 

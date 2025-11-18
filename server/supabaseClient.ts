@@ -106,6 +106,7 @@ export interface BaixaEstoque {
   lote_id: string;
   quantidade_baixada: number | null;
   motivo: string | null;
+  data_baixa?: string | null;
   referencia_producao_id: string | null;
   created_at?: string;
 }

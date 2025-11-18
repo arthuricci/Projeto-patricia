@@ -427,15 +427,17 @@ export const appRouter = router({
       .input(z.object({
         lote_id: z.string().uuid(),
         quantidade_baixada: z.number().min(0).nullable().optional(),
-        motivo: z.enum(['manual', 'producao']).nullable().optional(),
+        motivo: z.string().nullable().optional(),
+        data_baixa: z.string().nullable().optional(),
         referencia_producao_id: z.string().uuid().nullable().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { quantidade_baixada, motivo, referencia_producao_id, ...rest } = input;
+        const { quantidade_baixada, motivo, data_baixa, referencia_producao_id, ...rest } = input;
         return await createBaixaEstoque({
           ...rest,
           quantidade_baixada: quantidade_baixada ?? null,
           motivo: motivo ?? null,
+          data_baixa: data_baixa ?? null,
           referencia_producao_id: referencia_producao_id ?? null,
         });
       }),
