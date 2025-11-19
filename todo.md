@@ -110,8 +110,8 @@
 ### 4. Dar Baixa
 - [x] 4.1: Adicionar data obrigatória ao dar baixa manual
 - [x] 4.2: Adicionar campo de seleção do motivo de perda (configurável)
-- [ ] 4.3: Criar Página de Desperdício com cards de insumos
-- [ ] 4.4: Adicionar filtros de tempo na Página de Desperdício
+- [x] 4.3: Criar Página de Desperdício com cards de insumos
+- [x] 4.4: Adicionar filtros de tempo na Página de Desperdício
 
 ### 5. Lista de Compras
 - [ ] 5.1: Converter tabela de listas para cards

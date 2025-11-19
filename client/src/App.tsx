@@ -18,6 +18,7 @@ import FichasTecnicas from "./pages/FichasTecnicas";
 import OrdenProducaoPage from "./pages/OrdenProducaoPage";
 import ProdutosProducao from "./pages/ProdutosProducao";
 import Producoes from "./pages/Producoes";
+import DesperdícioPage from "./pages/DesperdícioPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/estoque/registrar-compras" component={RegistrarComprasPage} />
       <Route path="/estoque/dar-baixa" component={DarBaixaPage} />
       <Route path="/estoque/lista-compras" component={ListaComprasPage} />
+      <Route path="/estoque/desperdicio" component={DesperdícioPage} />
       <Route path="/insumos" component={Insumos} />
       <Route path="/clientes" component={Clientes} />
       <Route path="/produtos" component={Produtos} />

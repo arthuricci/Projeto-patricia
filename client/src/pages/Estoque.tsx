@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Package, Eye, ShoppingCart, TrendingDown, ListChecks } from "lucide-react";
+import { ArrowLeft, Package, Eye, ShoppingCart, TrendingDown, ListChecks, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Estoque() {
@@ -41,6 +41,13 @@ export default function Estoque() {
       description: "Gerencie lista de compras",
       icon: <ListChecks className="h-5 w-5" />,
       path: "/estoque/lista-compras",
+    },
+    {
+      id: "desperdicio",
+      label: "Análise de Desperdício",
+      description: "Visualize perdas de insumos",
+      icon: <AlertTriangle className="h-5 w-5" />,
+      path: "/estoque/desperdicio",
     },
   ];
 
