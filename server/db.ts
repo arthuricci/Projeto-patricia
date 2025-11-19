@@ -694,13 +694,7 @@ export async function deleteItemListaCompras(id: string): Promise<void> {
 export async function getBaixasEstoque(loteId?: string): Promise<BaixaEstoqueComLote[]> {
   let query = supabase
     .from('baixas_estoque')
-    .select(`
-      *,
-      lotes:lote_id (
-        *,
-        Insumos:insumo_id (*)
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (loteId) {
