@@ -351,8 +351,8 @@ export default function ListaComprasPage() {
                         <TableCell>
                           R$ {precoTotalLista.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end flex-wrap">
+                        <TableCell className="text-right min-w-max">
+                          <div className="flex gap-2 justify-end flex-wrap min-w-max">
                             <Button
                               size="sm"
                               variant="outline"
@@ -482,7 +482,7 @@ export default function ListaComprasPage() {
                         <TableCell>
                           R$ {precoTotalCompra.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right min-w-max">
                           {editingItemId === item.id ? (
                             <div className="flex gap-2 justify-end items-center flex-wrap">
                               <Input
@@ -509,7 +509,7 @@ export default function ListaComprasPage() {
                               </Button>
                             </div>
                           ) : (
-                            <div className="flex gap-2 justify-end flex-wrap">
+                            <div className="flex gap-2 justify-end flex-wrap min-w-max">
                               <Button
                                 size="sm"
                                 variant="outline"
