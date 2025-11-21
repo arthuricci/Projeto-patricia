@@ -447,7 +447,17 @@ export async function getLotes(insumoId?: string): Promise<LoteComInsumo[]> {
 
 export async function createLote(lote: Omit<Lote, 'id' | 'created_at' | 'updated_at'> & { created_at?: string | null }): Promise<Lote> {
   const { created_at, ...loteData } = lote;
-  const dataToInsert = created_at ? { ...loteData, created_at } : loteData;
+  
+  // Fix timezone issue: convert date string to proper format
+  // If created_at is a date string like "2025-11-15", ensure it's treated as local time
+  let dataToInsert: any = loteData;
+  if (created_at) {
+    // Parse the date string and ensure it's stored correctly
+    // Format: YYYY-MM-DD HH:mm:ss for MySQL
+    const dateObj = new Date(created_at + 'T00:00:00');
+    const formattedDate = dateObj.toISOString().split('T')[0]; // Keep as YYYY-MM-DD
+    dataToInsert = { ...loteData, created_at: formattedDate };
+  }
   
   const { data, error } = await supabase
     .from('lotes')
@@ -463,10 +473,18 @@ export async function createLote(lote: Omit<Lote, 'id' | 'created_at' | 'updated
   return data;
 }
 
-export async function updateLote(id: string, lote: Partial<Omit<Lote, 'id' | 'created_at' | 'updated_at'>>): Promise<Lote> {
+export async function updateLote(id: string, lote: Partial<Omit<Lote, 'id' | 'created_at' | 'updated_at'>> & { created_at?: string | null }): Promise<Lote> {
+  // Fix timezone issue for created_at if provided
+  let dataToUpdate: any = lote;
+  if (lote.created_at && typeof lote.created_at === 'string') {
+    const dateObj = new Date(lote.created_at + 'T00:00:00');
+    const formattedDate = dateObj.toISOString().split('T')[0];
+    dataToUpdate = { ...lote, created_at: formattedDate };
+  }
+  
   const { data, error } = await supabase
     .from('lotes')
-    .update(lote)
+    .update(dataToUpdate)
     .eq('id', id)
     .select()
     .single();
