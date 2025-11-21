@@ -45,6 +45,8 @@ export default function ListaComprasPage() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemQuantidade, setEditingItemQuantidade] = useState("");
+  const [editingListaId, setEditingListaId] = useState<string | null>(null);
+  const [editingListaNome, setEditingListaNome] = useState("");
 
   // Queries
   const { data: listas = [], isLoading: loadingListas, refetch: refetchListas } = trpc.listasCompras.listWithTotals.useQuery();
@@ -117,6 +119,18 @@ export default function ListaComprasPage() {
     },
   });
 
+  const updateListaMutation = trpc.listasCompras.update.useMutation({
+    onSuccess: () => {
+      toast.success("Lista atualizada com sucesso!");
+      setEditingListaId(null);
+      setEditingListaNome("");
+      refetchListas();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atualizar lista: ${error.message}`);
+    },
+  });
+
   // Paginação
   const totalPages = Math.ceil(listas.length / ITEMS_PER_PAGE);
   const paginatedListas = listas.slice(
@@ -180,6 +194,23 @@ export default function ListaComprasPage() {
     updateItemMutation.mutate({
       id: editingItemId,
       quantidade: parseFloat(editingItemQuantidade),
+    });
+  };
+
+  const handleEditLista = (lista: any) => {
+    setEditingListaId(lista.id);
+    setEditingListaNome(lista.nome);
+  };
+
+  const handleSaveEditLista = () => {
+    if (!editingListaId || !editingListaNome.trim()) {
+      toast.error("Nome da lista é obrigatório");
+      return;
+    }
+
+    updateListaMutation.mutate({
+      id: editingListaId,
+      nome: editingListaNome,
     });
   };
 
@@ -286,32 +317,72 @@ export default function ListaComprasPage() {
                       
                       return (
                       <TableRow key={lista.id}>
-                        <TableCell className="font-medium">{lista.nome}</TableCell>
+                        <TableCell className="font-medium">
+                          {editingListaId === lista.id ? (
+                            <div className="flex gap-2 items-center">
+                              <Input
+                                type="text"
+                                value={editingListaNome}
+                                onChange={(e) => setEditingListaNome(e.target.value)}
+                                className="flex-1"
+                              />
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={handleSaveEditLista}
+                              >
+                                Salvar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingListaId(null)}
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          ) : (
+                            lista.nome
+                          )}
+                        </TableCell>
                         <TableCell>
                           {lista.data ? new Date(lista.data).toLocaleDateString('pt-BR') : '-'}
                         </TableCell>
                         <TableCell>
                           R$ {precoTotalLista.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedLista(lista)}
-                            className="inline-flex items-center gap-2"
-                          >
-                            <ShoppingCart className="h-4 w-4" />
-                            Ver Itens
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteListaId(lista.id)}
-                            className="inline-flex items-center gap-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Deletar
-                          </Button>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end flex-wrap">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedLista(lista)}
+                              className="inline-flex items-center gap-2 whitespace-nowrap"
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                              Ver Itens
+                            </Button>
+                            {editingListaId !== lista.id && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditLista(lista)}
+                                className="inline-flex items-center gap-2 whitespace-nowrap"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                                Editar
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteListaId(lista.id)}
+                              className="inline-flex items-center gap-2 whitespace-nowrap"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Deletar
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -411,9 +482,9 @@ export default function ListaComprasPage() {
                         <TableCell>
                           R$ {precoTotalCompra.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
+                        <TableCell className="text-right">
                           {editingItemId === item.id ? (
-                            <div className="flex gap-2 justify-end items-center">
+                            <div className="flex gap-2 justify-end items-center flex-wrap">
                               <Input
                                 type="number"
                                 min="0.01"
@@ -438,12 +509,12 @@ export default function ListaComprasPage() {
                               </Button>
                             </div>
                           ) : (
-                            <>
+                            <div className="flex gap-2 justify-end flex-wrap">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEditItem(item)}
-                                className="inline-flex items-center gap-2"
+                                className="inline-flex items-center gap-2 whitespace-nowrap"
                               >
                                 <Edit2 className="h-4 w-4" />
                                 Editar
@@ -452,12 +523,12 @@ export default function ListaComprasPage() {
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => setDeleteItemId(item.id)}
-                                className="inline-flex items-center gap-2"
+                                className="inline-flex items-center gap-2 whitespace-nowrap"
                               >
                                 <Trash2 className="h-4 w-4" />
                                 Remover
                               </Button>
-                            </>
+                            </div>
                           )}
                         </TableCell>
                       </TableRow>
