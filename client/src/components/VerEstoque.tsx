@@ -35,14 +35,13 @@ export default function VerEstoque() {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
   // Queries
   const { data: insumos = [], isLoading } = trpc.insumos.list.useQuery();
-  const { data: lotes = [] } = trpc.lotes.list.useQuery({});
+  const { data: estoqueAtual = [] } = trpc.insumos.getEstoqueAtual.useQuery();
 
   // Calcular quantidade em estoque por insumo
   const insumosComEstoque = useMemo(() => {
     return insumos.map((insumo) => {
-      const quantidadeTotal = lotes
-        .filter((lote: any) => lote.insumo_id === insumo.id)
-        .reduce((sum: number, lote: any) => sum + (lote.quantidade_atual || 0), 0);
+      const estoqueInfo = estoqueAtual.find((e: any) => e.insumo_id === insumo.id);
+      const quantidadeTotal = estoqueInfo?.estoque_atual || 0;
 
       const status = quantidadeTotal < insumo.nivel_minimo ? "critico" : quantidadeTotal === insumo.nivel_minimo ? "minimo" : "ok";
 
@@ -52,16 +51,17 @@ export default function VerEstoque() {
         status,
       };
     });
-  }, [insumos, lotes]);
+  }, [insumos, estoqueAtual]);
 
   // Filtrar
   const filteredInsumos = useMemo(() => {
     return insumosComEstoque.filter((insumo) => {
       const matchesSearch = insumo.nome?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUnidade = !selectedUnidade || insumo.unidade_base === selectedUnidade;
-      return matchesSearch && matchesUnidade;
+      const matchesTipo = !selectedTipo || insumo.tipo_produto === selectedTipo;
+      return matchesSearch && matchesUnidade && matchesTipo;
     });
-  }, [insumosComEstoque, searchTerm, selectedUnidade]);
+  }, [insumosComEstoque, searchTerm, selectedUnidade, selectedTipo]);
 
   // Ordenar
   const sortedInsumos = useMemo(() => {

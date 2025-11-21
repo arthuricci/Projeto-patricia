@@ -117,3 +117,14 @@
 - [ ] 5.1: Converter tabela de listas para cards
 - [ ] 5.2: Adicionar função de registrar compra da lista automaticamente
 
+
+
+
+## 🔴 BUGS CRÍTICOS - IMPLEMENTAÇÃO
+
+### Bug #1: Estoque Não Diminui ao Dar Baixa
+- [ ] Criar função calcularEstoqueDisponivel() em db.ts
+- [ ] Modificar getInsumos() para incluir cálculo dinâmico
+- [ ] Testar em Ver Estoque
+- [ ] Testar em Análise de Desperdício
+

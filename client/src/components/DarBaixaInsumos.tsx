@@ -50,6 +50,7 @@ export default function DarBaixaInsumos() {
   // Queries
   const { data: insumos = [], isLoading, refetch } = trpc.insumos.list.useQuery();
   const { data: lotes = [], refetch: refetchLotes } = trpc.lotes.list.useQuery({});
+  const { data: estoqueAtual = [], refetch: refetchEstoque } = trpc.insumos.getEstoqueAtual.useQuery();
 
   // Mutations
   const createBaixaMutation = trpc.baixasEstoque.create.useMutation({
@@ -60,6 +61,7 @@ export default function DarBaixaInsumos() {
       setQuantidadeBaixa("");
       setSelectedLote(null);
       refetchLotes();
+      refetchEstoque();
     },
     onError: (error) => {
       toast.error(`Erro ao registrar baixa: ${error.message}`);
@@ -78,15 +80,15 @@ export default function DarBaixaInsumos() {
   // Calcular estoque total por insumo
   const insumosComEstoque = useMemo(() => {
     return insumos.map((insumo) => {
-      const lotesDoInsumo = lotes.filter((lote) => lote.insumo_id === insumo.id);
-      const estoqueTotal = lotesDoInsumo.reduce((sum, lote) => sum + (lote.quantidade_atual || 0), 0);
+      const estoqueInfo = estoqueAtual.find((e: any) => e.insumo_id === insumo.id);
+      const estoqueTotal = estoqueInfo?.estoque_atual || 0;
       return {
         ...insumo,
         estoqueTotal,
         temEstoque: estoqueTotal > 0,
       };
     }).filter((insumo) => insumo.temEstoque);
-  }, [insumos, lotes]);
+  }, [insumos, estoqueAtual]);
 
   // Filtrar
   const filteredInsumos = useMemo(() => {
@@ -126,8 +128,8 @@ export default function DarBaixaInsumos() {
     }
 
     const quantidade = parseFloat(quantidadeBaixa);
-    if (quantidade > selectedLote.quantidade_atual) {
-      toast.error(`Quantidade não pode ser maior que ${selectedLote.quantidade_atual}`);
+    if (quantidade > (selectedLote.quantidade_inicial || 0)) {
+      toast.error(`Quantidade nao pode ser maior que ${selectedLote.quantidade_inicial}`);
       return;
     }
 

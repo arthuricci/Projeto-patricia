@@ -1091,3 +1091,96 @@ export async function atualizarPrecoMedioPorUnidade(insumoId: string): Promise<v
   }
 }
 
+
+
+
+// ===== CÁLCULO DE ESTOQUE ATUAL (DINÂMICO) =====
+
+export interface EstoqueAtual {
+  insumo_id: string;
+  quantidade_inicial_total: number;
+  quantidade_baixada_total: number;
+  estoque_atual: number;
+}
+
+export async function getEstoqueAtualPorInsumo(insumoId: string): Promise<EstoqueAtual | null> {
+  try {
+    // Buscar todos os lotes do insumo
+    const { data: lotes, error: errorLotes } = await supabase
+      .from('lotes')
+      .select('id, quantidade_inicial')
+      .eq('insumo_id', insumoId);
+
+    if (errorLotes) {
+      console.error('[Supabase] Erro ao buscar lotes:', errorLotes);
+      throw new Error(`Erro ao buscar lotes: ${errorLotes.message}`);
+    }
+
+    if (!lotes || lotes.length === 0) {
+      return {
+        insumo_id: insumoId,
+        quantidade_inicial_total: 0,
+        quantidade_baixada_total: 0,
+        estoque_atual: 0,
+      };
+    }
+
+    // Calcular quantidade inicial total
+    const quantidadeInicialTotal = lotes.reduce(
+      (sum: number, lote: any) => sum + (lote.quantidade_inicial || 0),
+      0
+    );
+
+    // Buscar todas as baixas para este insumo
+    const { data: baixas, error: errorBaixas } = await supabase
+      .from('baixas_estoque')
+      .select('quantidade_baixada')
+      .in('lote_id', lotes.map((l: any) => l.id));
+
+    if (errorBaixas) {
+      console.error('[Supabase] Erro ao buscar baixas:', errorBaixas);
+      throw new Error(`Erro ao buscar baixas: ${errorBaixas.message}`);
+    }
+
+    // Calcular quantidade baixada total
+    const quantidadeBaixadaTotal = (baixas || []).reduce(
+      (sum: number, baixa: any) => sum + (baixa.quantidade_baixada || 0),
+      0
+    );
+
+    // Calcular estoque atual
+    const estoqueAtual = quantidadeInicialTotal - quantidadeBaixadaTotal;
+
+    return {
+      insumo_id: insumoId,
+      quantidade_inicial_total: quantidadeInicialTotal,
+      quantidade_baixada_total: quantidadeBaixadaTotal,
+      estoque_atual: Math.max(0, estoqueAtual), // Nunca negativo
+    };
+  } catch (error) {
+    console.error('[Database] Erro ao calcular estoque atual:', error);
+    throw error;
+  }
+}
+
+export async function getEstoqueAtualTodos(): Promise<EstoqueAtual[]> {
+  try {
+    // Buscar todos os insumos
+    const insumos = await getInsumos();
+
+    // Calcular estoque atual para cada insumo
+    const estoqueAtualList: EstoqueAtual[] = [];
+    for (const insumo of insumos) {
+      const estoque = await getEstoqueAtualPorInsumo(insumo.id);
+      if (estoque) {
+        estoqueAtualList.push(estoque);
+      }
+    }
+
+    return estoqueAtualList;
+  } catch (error) {
+    console.error('[Database] Erro ao calcular estoque atual de todos os insumos:', error);
+    throw error;
+  }
+}
+

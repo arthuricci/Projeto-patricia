@@ -15,7 +15,7 @@ import {
   getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque,
   getOrdensProducao, getOrdemProducaoById, getOrdensProducaoPorProduto, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao,
   validateStockForProduction, deductStockForProduction, getProductFichasTecnicas,
-  atualizarPrecoMedioPorUnidade
+  atualizarPrecoMedioPorUnidade, getEstoqueAtualTodos, getEstoqueAtualPorInsumo
 } from "./db";
 import { z } from "zod";
 
@@ -42,6 +42,18 @@ export const appRouter = router({
     criticos: publicProcedure.query(async () => {
       return await getInsumosCriticos();
     }),
+    
+    getEstoqueAtual: publicProcedure
+      .input(z.object({
+        insumoId: z.string().uuid().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        if (input?.insumoId) {
+          const estoque = await getEstoqueAtualPorInsumo(input.insumoId);
+          return estoque ? [estoque] : [];
+        }
+        return await getEstoqueAtualTodos();
+      }),
     
     create: publicProcedure
       .input(z.object({
