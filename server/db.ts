@@ -1202,3 +1202,42 @@ export async function getEstoqueAtualTodos(): Promise<EstoqueAtual[]> {
   }
 }
 
+
+
+// Função para calcular custo total de uma ficha técnica
+export async function calcularCustoTotalFicha(fichaId: string): Promise<number> {
+  try {
+    const ingredientes = await getIngredientesByFicha(fichaId);
+    
+    const custoTotal = ingredientes.reduce((total: number, ing: any) => {
+      const precoUnitario = ing.insumo?.preco_medio_por_unidade || 0;
+      const custo = ing.quantidade * precoUnitario;
+      return total + custo;
+    }, 0);
+    
+    return custoTotal;
+  } catch (error) {
+    console.error('[Database] Erro ao calcular custo total da ficha:', error);
+    return 0;
+  }
+}
+
+// Função para buscar fichas técnicas com custo total
+export async function getFichasTecnicasComCusto(): Promise<(FichaTecnica & { custo_total: number })[]> {
+  try {
+    const fichas = await getFichasTecnicas();
+    
+    const fichasComCusto = await Promise.all(
+      fichas.map(async (ficha) => ({
+        ...ficha,
+        custo_total: await calcularCustoTotalFicha(ficha.id),
+      }))
+    );
+    
+    return fichasComCusto;
+  } catch (error) {
+    console.error('[Database] Erro ao buscar fichas com custo:', error);
+    return [];
+  }
+}
+

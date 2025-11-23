@@ -15,7 +15,8 @@ import {
   getBaixasEstoque, createBaixaEstoque, deleteBaixaEstoque,
   getOrdensProducao, getOrdemProducaoById, getOrdensProducaoPorProduto, createOrdemProducao, updateOrdemProducao, deleteOrdemProducao,
   validateStockForProduction, deductStockForProduction, getProductFichasTecnicas,
-  atualizarPrecoMedioPorUnidade, getEstoqueAtualTodos, getEstoqueAtualPorInsumo
+  atualizarPrecoMedioPorUnidade, getEstoqueAtualTodos, getEstoqueAtualPorInsumo,
+  getFichasTecnicasComCusto, calcularCustoTotalFicha
 } from "./db";
 import { z } from "zod";
 
@@ -184,6 +185,16 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return await getFichasTecnicas();
     }),
+    
+    listComCusto: publicProcedure.query(async () => {
+      return await getFichasTecnicasComCusto();
+    }),
+    
+    calcularCusto: publicProcedure
+      .input(z.object({ fichaId: z.string().uuid() }))
+      .query(async ({ input }) => {
+        return await calcularCustoTotalFicha(input.fichaId);
+      }),
     
     create: publicProcedure
       .input(z.object({

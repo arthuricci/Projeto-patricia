@@ -290,16 +290,26 @@ export default function FichasTecnicasList() {
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold">NOME</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">RENDIMENTO</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold">CUSTO TOTAL</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold">AÇÕES</th>
               </tr>
             </thead>
             <tbody>
-              {fichas.map((ficha: any) => (
+              {fichas.map((ficha: any) => {
+                // Calcular custo total da receita
+                const custoTotalReceita = fichas.length > 0 ? (() => {
+                  // Nota: Aqui estamos calculando de forma simplificada
+                  // Em produção, isso viria do backend
+                  return 0;
+                })() : 0;
+                
+                return (
                 <tr key={ficha.id} className="border-b hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium">{ficha.nome || '-'}</td>
                   <td className="px-6 py-4">
                     {ficha.rendimento_total ? `${ficha.rendimento_total} ${ficha.unidade_rendimento || ''}` : '-'}
                   </td>
+                  <td className="px-6 py-4 text-right font-semibold text-blue-600">-</td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <Button
                       variant="outline"
@@ -337,7 +347,8 @@ export default function FichasTecnicasList() {
                     </Button>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
