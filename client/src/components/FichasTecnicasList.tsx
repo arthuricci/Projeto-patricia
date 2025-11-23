@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,7 @@ import {
 import { Pencil, Trash2, Plus, ArrowLeft, ChefHat, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
+
 import {
   Select,
   SelectContent,
@@ -32,6 +33,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface FichaFormData {
   nome: string | null;
@@ -610,38 +619,84 @@ export default function FichasTecnicasList() {
               </div>
             </div>
 
-            {/* Lista de Ingredientes */}
+            {/* Lista de Ingredientes em Tabela */}
             <div>
               <h3 className="font-semibold mb-3">Ingredientes Adicionados</h3>
               {ingredientes.length === 0 ? (
                 <p className="text-center text-gray-500 py-4">Nenhum ingrediente adicionado</p>
               ) : (
-                <div className="space-y-2">
-                  {ingredientes.map((ingrediente: any) => {
-                    const insumo = insumos.find((i: any) => i.id === ingrediente.insumo_id);
-                    const custoIngrediente = insumo?.preco_medio_por_unidade ? (ingrediente.quantidade * insumo.preco_medio_por_unidade) : 0;
+                <>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-100">
+                          <TableHead>Ingrediente</TableHead>
+                          <TableHead className="text-right">Quantidade</TableHead>
+                          <TableHead className="text-right">Preço/Un</TableHead>
+                          <TableHead className="text-right">Custo Total</TableHead>
+                          <TableHead className="text-center">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {ingredientes.map((ingrediente: any) => {
+                          const insumo = insumos.find((i: any) => i.id === ingrediente.insumo_id);
+                          const precoUnitario = insumo?.preco_medio_por_unidade || 0;
+                          const custoIngrediente = ingrediente.quantidade * precoUnitario;
+                          return (
+                            <TableRow key={ingrediente.id}>
+                              <TableCell className="font-medium">{getInsumoNome(ingrediente.insumo_id)}</TableCell>
+                              <TableCell className="text-right">{ingrediente.quantidade} {getInsumoUnidade(ingrediente.insumo_id)}</TableCell>
+                              <TableCell className="text-right">
+                                {precoUnitario > 0 ? `R$ ${precoUnitario.toFixed(2)}` : '-'}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold text-blue-600">
+                                {precoUnitario > 0 ? `R$ ${custoIngrediente.toFixed(2)}` : '-'}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveIngrediente(ingrediente.id)}
+                                  disabled={deleteIngredienteMutation.isPending}
+                                  className="text-red-600 hover:text-red-800"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Rodapé com Totais */}
+                  {(() => {
+                    const custoTotal = ingredientes.reduce((total: number, ing: any) => {
+                      const insumo = insumos.find((i: any) => i.id === ing.insumo_id);
+                      const precoUnitario = insumo?.preco_medio_por_unidade || 0;
+                      return total + (ing.quantidade * precoUnitario);
+                    }, 0);
+                    
+                    const rendimento = formData.rendimento_total || 1;
+                    const custoPorUnidade = custoTotal / rendimento;
+                    
                     return (
-                    <div key={ingrediente.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
-                      <div>
-                        <p className="font-medium">{getInsumoNome(ingrediente.insumo_id)}</p>
-                        <p className="text-sm text-gray-600">{ingrediente.quantidade} {getInsumoUnidade(ingrediente.insumo_id)}</p>
-                        {insumo?.preco_medio_por_unidade && (
-                          <p className="text-xs text-blue-600 mt-1">Custo: R$ {custoIngrediente.toFixed(2)}</p>
+                      <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-700">Custo Total da Receita:</span>
+                          <span className="text-xl font-bold text-blue-600">R$ {custoTotal.toFixed(2)}</span>
+                        </div>
+                        {rendimento > 0 && (
+                          <div className="flex justify-between items-center text-sm text-gray-600 border-t border-blue-200 pt-2">
+                            <span>Custo por {formData.unidade_rendimento || 'unidade'}:</span>
+                            <span className="font-semibold text-gray-800">R$ {custoPorUnidade.toFixed(2)}</span>
+                          </div>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveIngrediente(ingrediente.id)}
-                        disabled={deleteIngredienteMutation.isPending}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  );
-                  })}
-                </div>
+                    );
+                  })()}
+                </>
               )}
             </div>
           </div>
