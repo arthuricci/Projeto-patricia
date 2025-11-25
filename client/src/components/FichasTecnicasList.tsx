@@ -296,12 +296,18 @@ export default function FichasTecnicasList() {
             </thead>
             <tbody>
               {fichas.map((ficha: any) => {
+                // Hook para buscar ingredientes desta ficha
+                const { data: ingredientesFicha = [] } = trpc.ingredientes.listByFicha.useQuery(
+                  { fichaId: ficha.id },
+                  { enabled: !!ficha.id }
+                );
+                
                 // Calcular custo total da receita
-                const custoTotalReceita = fichas.length > 0 ? (() => {
-                  // Nota: Aqui estamos calculando de forma simplificada
-                  // Em produção, isso viria do backend
-                  return 0;
-                })() : 0;
+                const custoTotalReceita = ingredientesFicha.reduce((total: number, ing: any) => {
+                  const insumo = insumos.find((i: any) => i.id === ing.insumo_id);
+                  const precoUnitario = insumo?.preco_medio_por_unidade || 0;
+                  return total + (ing.quantidade * precoUnitario);
+                }, 0);
                 
                 return (
                 <tr key={ficha.id} className="border-b hover:bg-gray-50">
@@ -309,7 +315,9 @@ export default function FichasTecnicasList() {
                   <td className="px-6 py-4">
                     {ficha.rendimento_total ? `${ficha.rendimento_total} ${ficha.unidade_rendimento || ''}` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-right font-semibold text-blue-600">-</td>
+                  <td className="px-6 py-4 text-right font-semibold text-blue-600">
+                    {custoTotalReceita > 0 ? `R$ ${custoTotalReceita.toFixed(2)}` : '-'}
+                  </td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <Button
                       variant="outline"
