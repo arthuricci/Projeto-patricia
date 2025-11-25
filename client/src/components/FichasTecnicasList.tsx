@@ -83,6 +83,7 @@ export default function FichasTecnicasList() {
     { fichaId: selectedFicha?.id || '' },
     { enabled: !!selectedFicha }
   );
+  const { data: allIngredientes = [] } = trpc.ingredientes.list.useQuery();
 
   const createMutation = trpc.fichasTecnicas.create.useMutation({
     onSuccess: () => {
@@ -296,11 +297,8 @@ export default function FichasTecnicasList() {
             </thead>
             <tbody>
               {fichas.map((ficha: any) => {
-                // Hook para buscar ingredientes desta ficha
-                const { data: ingredientesFicha = [] } = trpc.ingredientes.listByFicha.useQuery(
-                  { fichaId: ficha.id },
-                  { enabled: !!ficha.id }
-                );
+                // Obter ingredientes desta ficha do array allIngredientes
+                const ingredientesFicha = allIngredientes.filter((ing: any) => ing.ficha_tecnica_id === ficha.id);
                 
                 // Calcular custo total da receita
                 const custoTotalReceita = ingredientesFicha.reduce((total: number, ing: any) => {
