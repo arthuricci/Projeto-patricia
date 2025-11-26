@@ -79,11 +79,11 @@ export default function FichasTecnicasList() {
 
   const utils = trpc.useUtils();
   const { data: insumos = [] } = trpc.insumos.list.useQuery();
+  const { data: allIngredientes = [] } = trpc.ingredientes.list.useQuery();
   const { data: ingredientes = [], refetch: refetchIngredientes } = trpc.ingredientes.listByFicha.useQuery(
-    { fichaId: selectedFicha?.id || '' },
+    { fichaId: selectedFicha?.id || "" },
     { enabled: !!selectedFicha }
   );
-  const { data: allIngredientes = [] } = trpc.ingredientes.list.useQuery();
 
   const createMutation = trpc.fichasTecnicas.create.useMutation({
     onSuccess: () => {
@@ -297,7 +297,7 @@ export default function FichasTecnicasList() {
             </thead>
             <tbody>
               {fichas.map((ficha: any) => {
-                // Obter ingredientes desta ficha do array allIngredientes
+                // Obter ingredientes desta ficha
                 const ingredientesFicha = allIngredientes.filter((ing: any) => ing.ficha_tecnica_id === ficha.id);
                 
                 // Calcular custo total da receita

@@ -8,7 +8,7 @@ import {
   getClientes, createCliente, updateCliente, deleteCliente,
   getProdutos, createProduto, updateProduto, deleteProduto,
   getFichasTecnicas, createFichaTecnica, updateFichaTecnica, deleteFichaTecnica,
-  getIngredientesByFicha, createIngrediente, updateIngrediente, deleteIngrediente,
+  getIngredientesByFicha, getAllIngredientes, createIngrediente, updateIngrediente, deleteIngrediente,
   getLotes, createLote, updateLote, deleteLote,
   getListasCompras, getListasComprasComTotal, createListaCompras, updateListaCompras, deleteListaCompras,
   getItensListaCompras, getAllItensListaCompras, createItemListaCompras, updateItemListaCompras, deleteItemListaCompras,
@@ -241,6 +241,10 @@ export const appRouter = router({
 
   // Router para gerenciar ingredientes
   ingredientes: router({
+    list: publicProcedure.query(async () => {
+      return await getAllIngredientes();
+    }),
+    
     listByFicha: publicProcedure
       .input(z.object({ fichaId: z.string().uuid() }))
       .query(async ({ input }) => {

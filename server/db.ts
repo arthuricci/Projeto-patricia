@@ -374,6 +374,26 @@ export async function getIngredientesByFicha(fichaId: string): Promise<Ingredien
   }));
 }
 
+export async function getAllIngredientes(): Promise<IngredienteComInsumo[]> {
+  const { data, error } = await supabase
+    .from('ingredientes')
+    .select(`
+      *,
+      Insumos:insumo_id (*)
+    `)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('[Supabase] Erro ao buscar todos os ingredientes:', error);
+    throw new Error(`Erro ao buscar ingredientes: ${error.message}`);
+  }
+
+  return (data || []).map((item: any) => ({
+    ...item,
+    insumo: item.Insumos,
+  }));
+}
+
 export async function createIngrediente(ingrediente: Omit<Ingrediente, 'id' | 'created_at' | 'updated_at'>): Promise<Ingrediente> {
   const { data, error } = await supabase
     .from('ingredientes')
